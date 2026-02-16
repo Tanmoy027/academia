@@ -64,7 +64,8 @@
                             </div>
                             <div class="flex items-end">
                                 <label class="inline-flex items-center">
-                                    <input type="checkbox" name="is_active" class="form-checkbox h-5 w-5 text-indigo-600" {{ old('is_active', $notice->is_active) ? 'checked' : '' }}>
+                                    <input type="hidden" name="is_active" value="0">
+                                    <input type="checkbox" name="is_active" value="1" class="form-checkbox h-5 w-5 text-indigo-600" {{ old('is_active', $notice->is_active) ? 'checked' : '' }}>
                                     <span class="ml-2 text-gray-700">Active (Visible to users)</span>
                                 </label>
                             </div>

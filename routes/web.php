@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\NoticeController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -72,7 +73,14 @@ Route::middleware('auth')->group(function () {
 // Public Course Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
 Route::get('/courses/{id}', [CourseController::class, 'show'])->name('courses.show');
-Route::post('/courses/{id}/enroll', [CourseController::class, 'enroll'])->middleware('auth')->name('courses.enroll');
+
+// Payment Routes (requires authentication)
+Route::middleware('auth')->group(function () {
+    Route::get('/checkout/{course}', [PaymentController::class, 'checkout'])->name('payment.checkout');
+    Route::post('/checkout/{course}/process', [PaymentController::class, 'createCheckoutSession'])->name('payment.process');
+    Route::get('/payment/{course}/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/{course}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+});
 
 Route::get('/debug-image-url', function () {
     $course = \App\Models\Course::latest()->first();

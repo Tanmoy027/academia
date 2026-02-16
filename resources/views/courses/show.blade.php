@@ -3,6 +3,28 @@
 @section('title', $course->title)
 
 @section('content')
+<!-- Flash Messages -->
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+    <i class="bi bi-exclamation-circle-fill me-2"></i>{{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@if(session('info'))
+<div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+    <i class="bi bi-info-circle-fill me-2"></i>{{ session('info') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
@@ -107,15 +129,12 @@
                     <i class="bi bi-check2-circle me-2"></i>Already Enrolled
                 </button>
                 @else
-                <form action="{{ route('courses.enroll', $course->id) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
-                        <i class="bi bi-cart-plus me-2"></i>Enroll Now
-                    </button>
-                </form>
+                <a href="{{ route('payment.checkout', $course->id) }}" class="btn btn-success btn-lg w-100 mb-3">
+                    <i class="bi bi-cart-plus me-2"></i>Enroll Now - ৳{{ number_format($course->price, 2) }}
+                </a>
                 <div class="text-center">
                     <small class="text-muted">
-                        <i class="bi bi-shield-check me-1"></i>Secure payment
+                        <i class="bi bi-shield-check me-1"></i>Secure payment via Stripe
                     </small>
                 </div>
                 @endif

@@ -20,6 +20,7 @@ class AdminController extends Controller
             'total_courses' => Course::count(),
             'total_revenue' => Payment::where('status', 'completed')->sum('amount'),
             'recent_enrollments' => Enrollment::with(['user', 'course'])->latest()->take(5)->get(),
+            'recent_payments' => Payment::with(['user', 'enrollment.course'])->where('status', 'completed')->latest()->take(5)->get(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -187,13 +188,16 @@ class AdminController extends Controller
             'content' => 'required|string',
             'category' => 'required|string|in:general,exam,holiday,class_update,event,urgent',
             'target_role' => 'required|string|in:all,student,teacher',
-            'is_active' => 'boolean',
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->input('is_active', '0') === '1';
 
-        Notice::create($validated);
-        return back()->with('success', 'Notice posted successfully.');
+        try {
+            Notice::create($validated);
+            return back()->with('success', 'Notice posted successfully.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Failed to create notice: ' . $e->getMessage());
+        }
     }
 
     public function editNotice($id)
@@ -212,13 +216,16 @@ class AdminController extends Controller
             'content' => 'required|string',
             'category' => 'required|string|in:general,exam,holiday,class_update,event,urgent',
             'target_role' => 'required|string|in:all,student,teacher',
-            'is_active' => 'boolean',
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->input('is_active', '0') === '1';
 
-        $notice->update($validated);
-        return redirect()->route('admin.notices')->with('success', 'Notice updated successfully.');
+        try {
+            $notice->update($validated);
+            return redirect()->route('admin.notices')->with('success', 'Notice updated successfully.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Failed to update notice: ' . $e->getMessage());
+        }
     }
 
     public function deleteNotice($id)

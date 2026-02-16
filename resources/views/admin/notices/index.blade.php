@@ -29,6 +29,22 @@
             </div>
             @endif
 
+            @if($errors->any())
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-r mb-6 shadow-sm">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <strong>Please fix the following errors:</strong>
+                </div>
+                <ul class="list-disc list-inside ml-7">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
             <!-- Create Notice Form -->
             <div class="bg-white overflow-hidden shadow-lg rounded-xl mb-8 border border-gray-100">
                 <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
@@ -42,7 +58,7 @@
                 <div class="p-6">
                     <form action="{{ route('admin.notices.store') }}" method="POST">
                         @csrf
-                        
+
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                             <!-- Title -->
                             <div>
@@ -54,10 +70,10 @@
                                         Notice Title <span class="text-red-500">*</span>
                                     </span>
                                 </label>
-                                <input type="text" name="title" id="title" placeholder="Enter notice title..." 
+                                <input type="text" name="title" id="title" placeholder="Enter notice title..."
                                     class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" required>
                             </div>
-                            
+
                             <!-- Category -->
                             <div>
                                 <label for="category" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -78,7 +94,7 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <!-- Content -->
                         <div class="mb-6">
                             <label for="content" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -89,11 +105,11 @@
                                     Content <span class="text-red-500">*</span>
                                 </span>
                             </label>
-                            <textarea name="content" id="content" placeholder="Write your notice content here..." 
+                            <textarea name="content" id="content" placeholder="Write your notice content here..."
                                 class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200 resize-none" rows="5" required></textarea>
                             <p class="text-xs text-gray-500 mt-1">Write a clear and concise message for your audience.</p>
                         </div>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                             <!-- Target Audience -->
                             <div>
@@ -111,17 +127,18 @@
                                     <option value="teacher">👨‍🏫 Teachers Only</option>
                                 </select>
                             </div>
-                            
+
                             <!-- Active Status -->
                             <div class="flex items-end">
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="is_active" class="sr-only peer" checked>
+                                    <input type="hidden" name="is_active" value="0">
+                                    <input type="checkbox" name="is_active" value="1" class="sr-only peer" checked>
                                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                                     <span class="ml-3 text-sm font-medium text-gray-700">Active (Visible to users)</span>
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Submit Button -->
                         <div class="flex items-center justify-end pt-4 border-t border-gray-200">
                             <button type="reset" class="mr-4 px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition duration-200">
@@ -183,12 +200,12 @@
                                     <td class="px-6 py-4">
                                         @php
                                         $categoryColors = [
-                                            'urgent' => 'bg-red-100 text-red-800 border border-red-200',
-                                            'exam' => 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-                                            'holiday' => 'bg-green-100 text-green-800 border border-green-200',
-                                            'class_update' => 'bg-blue-100 text-blue-800 border border-blue-200',
-                                            'event' => 'bg-purple-100 text-purple-800 border border-purple-200',
-                                            'general' => 'bg-gray-100 text-gray-800 border border-gray-200',
+                                        'urgent' => 'bg-red-100 text-red-800 border border-red-200',
+                                        'exam' => 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+                                        'holiday' => 'bg-green-100 text-green-800 border border-green-200',
+                                        'class_update' => 'bg-blue-100 text-blue-800 border border-blue-200',
+                                        'event' => 'bg-purple-100 text-purple-800 border border-purple-200',
+                                        'general' => 'bg-gray-100 text-gray-800 border border-gray-200',
                                         ];
                                         $colorClass = $categoryColors[$notice->category] ?? 'bg-gray-100 text-gray-800 border border-gray-200';
                                         @endphp
