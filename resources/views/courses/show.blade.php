@@ -3,62 +3,145 @@
 @section('title', $course->title)
 
 @section('content')
-<div class="container py-5">
-    <div class="row">
-        <div class="col-md-8">
-            <h1 class="mb-3">{{ $course->title }}</h1>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-decoration-none"><i class="bi bi-house me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('courses.index') }}" class="text-decoration-none">Courses</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ Str::limit($course->title, 30) }}</li>
+    </ol>
+</nav>
+
+<div class="row g-5">
+    <!-- Course Content -->
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 mb-4">
             @if($course->image_url)
-            <div class="bg-light rounded mb-4 p-3 text-center">
-                <img src="{{ $course->image_url }}" class="img-fluid rounded" alt="{{ $course->title }}" style="max-height: 400px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-muted\'>Image not available</span>';">
+            <div class="position-relative overflow-hidden" style="max-height: 400px;">
+                <img src="{{ $course->image_url }}" class="w-100" alt="{{ $course->title }}" style="object-fit: cover;" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center py-5 bg-light\'><i class=\'bi bi-image text-muted\' style=\'font-size: 5rem;\'></i></div>';">
+                <div class="position-absolute bottom-0 start-0 end-0 p-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+                    <h1 class="text-white fw-bold mb-0">{{ $course->title }}</h1>
+                </div>
+            </div>
+            @else
+            <div class="card-header py-4">
+                <h1 class="text-white fw-bold mb-0">{{ $course->title }}</h1>
             </div>
             @endif
 
-            <div class="card mb-4">
-                <div class="card-header">
-                    Description
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    @if($course->duration)
+                    <span class="badge bg-primary bg-gradient px-3 py-2">
+                        <i class="bi bi-clock me-1"></i>{{ $course->duration }}
+                    </span>
+                    @endif
+                    @if($course->schedule)
+                    <span class="badge bg-info bg-gradient px-3 py-2">
+                        <i class="bi bi-calendar me-1"></i>{{ $course->schedule }}
+                    </span>
+                    @endif
+                    @if($course->teacher)
+                    <span class="badge bg-secondary bg-gradient px-3 py-2">
+                        <i class="bi bi-person me-1"></i>{{ $course->teacher->name }}
+                    </span>
+                    @endif
                 </div>
-                <div class="card-body">
-                    <p class="card-text">{{ $course->description }}</p>
-                </div>
-            </div>
 
-            <div class="card mb-4">
-                <div class="card-header">
-                    Course Details
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>Duration:</strong> {{ $course->duration ?? 'N/A' }}</li>
-                    <li class="list-group-item"><strong>Schedule:</strong> {{ $course->schedule ?? 'N/A' }}</li>
-                    <li class="list-group-item"><strong>Teacher:</strong> {{ $course->teacher->name ?? 'Unknown' }}</li>
-                </ul>
+                <h4 class="fw-bold mb-3">
+                    <i class="bi bi-file-text me-2 text-primary"></i>Course Description
+                </h4>
+                <p class="text-muted lead">{{ $course->description }}</p>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="card-title text-center mb-4">৳{{ number_format($course->price, 2) }}</h3>
+        <!-- Course Details Card -->
+        <div class="card shadow border-0">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-list-check me-2 text-primary"></i>Course Details
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-hourglass-split me-2"></i>Duration</span>
+                        <span class="fw-semibold">{{ $course->duration ?? 'Not specified' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-calendar-event me-2"></i>Schedule</span>
+                        <span class="fw-semibold">{{ $course->schedule ?? 'Flexible' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-person-badge me-2"></i>Instructor</span>
+                        <span class="fw-semibold">{{ $course->teacher->name ?? 'To be announced' }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-                    @auth
-                    @if($isEnrolled)
-                    <div class="alert alert-success text-center">
-                        You are enrolled in this course.
-                    </div>
-                    <!-- Link to course content would go here -->
-                    <button class="btn btn-secondary w-100" disabled>Already Enrolled</button>
-                    @else
-                    <form action="{{ route('courses.enroll', $course->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">Enroll Now</button>
-                    </form>
-                    @endif
-                    @else
-                    <div class="alert alert-warning">
-                        Please <a href="{{ route('login') }}">login</a> to enroll in this course.
-                    </div>
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary w-100">Login to Buy</a>
-                    @endauth
+    <!-- Sidebar - Enrollment Card -->
+    <div class="col-lg-4">
+        <div class="card shadow-lg border-0 sticky-top" style="top: 2rem;">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <span class="text-muted small">Course Price</span>
+                    <h2 class="display-5 fw-bold mb-0" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        ৳{{ number_format($course->price, 2) }}
+                    </h2>
                 </div>
+
+                <hr class="my-4">
+
+                @auth
+                @if($isEnrolled)
+                <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong>Enrolled!</strong><br>
+                        <small>You have access to this course.</small>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-lg w-100" disabled>
+                    <i class="bi bi-check2-circle me-2"></i>Already Enrolled
+                </button>
+                @else
+                <form action="{{ route('courses.enroll', $course->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                        <i class="bi bi-cart-plus me-2"></i>Enroll Now
+                    </button>
+                </form>
+                <div class="text-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check me-1"></i>Secure payment
+                    </small>
+                </div>
+                @endif
+                @else
+                <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>Please login to enroll in this course.</div>
+                </div>
+                <a href="{{ route('login') }}" class="btn btn-primary btn-lg w-100 mb-2">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Enroll
+                </a>
+                <p class="text-center text-muted small mb-0">
+                    Don't have an account? <a href="{{ route('register') }}">Register</a>
+                </p>
+                @endauth
+            </div>
+
+            <!-- Features -->
+            <div class="card-footer bg-light p-4">
+                <h6 class="fw-bold mb-3">This course includes:</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="bi bi-play-circle text-primary me-2"></i>Video lectures</li>
+                    <li class="mb-2"><i class="bi bi-file-earmark-text text-primary me-2"></i>Study materials</li>
+                    <li class="mb-2"><i class="bi bi-infinity text-primary me-2"></i>Lifetime access</li>
+                    <li class="mb-0"><i class="bi bi-patch-check text-primary me-2"></i>Certificate</li>
+                </ul>
             </div>
         </div>
     </div>
