@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -57,6 +58,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'teacher'])->name('teacher.dashboard');
     Route::get('/notices', [NoticeController::class, 'teacherNotices'])->name('teacher.notices');
+
+    // Teacher Course Management
+    Route::get('/courses', [TeacherController::class, 'courses'])->name('teacher.courses');
+    Route::get('/courses/{id}', [TeacherController::class, 'showCourse'])->name('teacher.courses.show');
+    Route::get('/courses/{id}/students', [TeacherController::class, 'courseStudents'])->name('teacher.courses.students');
+    Route::get('/courses/{id}/materials', [TeacherController::class, 'courseMaterials'])->name('teacher.courses.materials');
 });
 
 Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {

@@ -81,9 +81,9 @@
                                 </div>
 
                                 <!-- Price -->
-                                <div class="sm:col-span-2">
+                                <div class="sm:col-span-6">
                                     <label for="price" class="block text-sm font-medium text-gray-700">Price (৳)</label>
-                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                    <div class="mt-1 relative rounded-md shadow-sm" style="max-width: 200px;">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <span class="text-gray-500 sm:text-sm">৳</span>
                                         </div>
@@ -92,18 +92,138 @@
                                     </div>
                                 </div>
 
-                                <!-- Duration -->
-                                <div class="sm:col-span-2">
-                                    <label for="duration" class="block text-sm font-medium text-gray-700">Duration</label>
-                                    <input type="text" name="duration" id="duration" placeholder="e.g. 10 Weeks" value="{{ old('duration', $course->duration) }}"
+                                <!-- Start Date -->
+                                <div class="sm:col-span-3">
+                                    <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date <span class="text-red-500">*</span></label>
+                                    <input type="date" name="start_date" id="start_date" required value="{{ old('start_date', $course->start_date ? $course->start_date->format('Y-m-d') : '') }}"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 pl-3">
+                                    <p class="mt-1 text-xs text-gray-500">Students cannot enroll after this date</p>
                                 </div>
 
-                                <!-- Schedule -->
-                                <div class="sm:col-span-2">
-                                    <label for="schedule" class="block text-sm font-medium text-gray-700">Schedule</label>
-                                    <input type="text" name="schedule" id="schedule" placeholder="e.g. Mon/Wed 10am" value="{{ old('schedule', $course->schedule) }}"
+                                <!-- End Date -->
+                                <div class="sm:col-span-3">
+                                    <label for="end_date" class="block text-sm font-medium text-gray-700">End Date <span class="text-red-500">*</span></label>
+                                    <input type="date" name="end_date" id="end_date" required value="{{ old('end_date', $course->end_date ? $course->end_date->format('Y-m-d') : '') }}"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2 pl-3">
+                                    <p class="mt-1 text-xs text-gray-500">When the course will be completed</p>
+                                </div>
+
+                                <!-- Calculated Duration Info -->
+                                <div class="sm:col-span-6">
+                                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                        <p class="text-sm text-blue-700">
+                                            <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <strong>Duration:</strong> Calculated automatically as <strong>{{ $course->duration ?? 'N/A' }}</strong> based on start and end dates.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Class Type Selection -->
+                                <div class="sm:col-span-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-3">Class Type <span class="text-red-500">*</span></label>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors {{ old('class_type', $course->class_type) == 'online' ? 'border-indigo-500 bg-indigo-50' : '' }}" id="class-type-online-label">
+                                            <input type="radio" name="class_type" value="online" class="sr-only" id="class-type-online" {{ old('class_type', $course->class_type) == 'online' ? 'checked' : '' }} onchange="toggleClassTypeUI()">
+                                            <div class="text-center">
+                                                <svg class="w-6 h-6 mx-auto mb-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                                <span class="font-semibold text-sm">Online</span>
+                                            </div>
+                                        </label>
+                                        <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors {{ old('class_type', $course->class_type ?? 'offline') == 'offline' ? 'border-indigo-500 bg-indigo-50' : '' }}" id="class-type-offline-label">
+                                            <input type="radio" name="class_type" value="offline" class="sr-only" id="class-type-offline" {{ old('class_type', $course->class_type ?? 'offline') == 'offline' ? 'checked' : '' }} onchange="toggleClassTypeUI()">
+                                            <div class="text-center">
+                                                <svg class="w-6 h-6 mx-auto mb-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                <span class="font-semibold text-sm">Offline</span>
+                                            </div>
+                                        </label>
+                                        <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors {{ old('class_type', $course->class_type) == 'hybrid' ? 'border-indigo-500 bg-indigo-50' : '' }}" id="class-type-hybrid-label">
+                                            <input type="radio" name="class_type" value="hybrid" class="sr-only" id="class-type-hybrid" {{ old('class_type', $course->class_type) == 'hybrid' ? 'checked' : '' }} onchange="toggleClassTypeUI()">
+                                            <div class="text-center">
+                                                <svg class="w-6 h-6 mx-auto mb-1 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                                </svg>
+                                                <span class="font-semibold text-sm">Hybrid</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Online Schedule (shown when online or hybrid is selected) -->
+                                @php
+                                    $onlineScheduleParts = [];
+                                    $onlineDays = [];
+                                    $onlineTime = '';
+                                    if($course->online_schedule) {
+                                        preg_match('/^(.*?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i', $course->online_schedule, $matches);
+                                        if(count($matches) >= 3) {
+                                            $onlineDays = array_map('trim', explode('/', str_replace(['&', ','], '/', $matches[1])));
+                                            $onlineTime = date('H:i', strtotime($matches[2]));
+                                        }
+                                    }
+                                    $offlineScheduleParts = [];
+                                    $offlineDays = [];
+                                    $offlineTime = '';
+                                    if($course->offline_schedule) {
+                                        preg_match('/^(.*?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i', $course->offline_schedule, $matches);
+                                        if(count($matches) >= 3) {
+                                            $offlineDays = array_map('trim', explode('/', str_replace(['&', ','], '/', $matches[1])));
+                                            $offlineTime = date('H:i', strtotime($matches[2]));
+                                        }
+                                    }
+                                @endphp
+                                <div class="sm:col-span-6 {{ (old('class_type', $course->class_type) == 'online' || old('class_type', $course->class_type) == 'hybrid') ? '' : 'hidden' }}" id="online-schedule-section">
+                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <h4 class="font-bold text-blue-800 mb-4 text-sm">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                            Online Class Schedule
+                                        </h4>
+                                        <span class="block text-xs text-gray-500 mb-2 font-bold uppercase tracking-wide">Select Days</span>
+                                        <div class="flex flex-wrap gap-4 mb-4">
+                                            @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $day)
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" name="online_days[]" value="{{ $day }}" class="form-checkbox text-blue-600" {{ in_array($day, old('online_days', $onlineDays)) ? 'checked' : '' }}>
+                                                <span class="ml-2">{{ $day }}</span>
+                                            </label>
+                                            @endforeach
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="block text-xs text-gray-500 mr-2 font-bold uppercase tracking-wide">Select Time</span>
+                                            <input type="time" name="online_time" value="{{ old('online_time', $onlineTime) }}" class="border rounded py-1 px-3 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Offline Schedule (shown when offline or hybrid is selected) -->
+                                <div class="sm:col-span-6 {{ (old('class_type', $course->class_type) == 'offline' || old('class_type', $course->class_type) == 'hybrid' || old('class_type', $course->class_type) == null) ? '' : 'hidden' }}" id="offline-schedule-section">
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <h4 class="font-bold text-green-800 mb-4 text-sm">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                            </svg>
+                                            Offline Class Schedule
+                                        </h4>
+                                        <span class="block text-xs text-gray-500 mb-2 font-bold uppercase tracking-wide">Select Days</span>
+                                        <div class="flex flex-wrap gap-4 mb-4">
+                                            @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $day)
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" name="offline_days[]" value="{{ $day }}" class="form-checkbox text-green-600" {{ in_array($day, old('offline_days', $offlineDays)) ? 'checked' : '' }}>
+                                                <span class="ml-2">{{ $day }}</span>
+                                            </label>
+                                            @endforeach
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="block text-xs text-gray-500 mr-2 font-bold uppercase tracking-wide">Select Time</span>
+                                            <input type="time" name="offline_time" value="{{ old('offline_time', $offlineTime) }}" class="border rounded py-1 px-3 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Image Upload -->
@@ -158,4 +278,34 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleClassTypeUI() {
+            const online = document.getElementById('class-type-online');
+            const offline = document.getElementById('class-type-offline');
+            const hybrid = document.getElementById('class-type-hybrid');
+            const onlineSection = document.getElementById('online-schedule-section');
+            const offlineSection = document.getElementById('offline-schedule-section');
+
+            // Reset all labels
+            document.getElementById('class-type-online-label').classList.remove('border-indigo-500', 'bg-indigo-50');
+            document.getElementById('class-type-offline-label').classList.remove('border-indigo-500', 'bg-indigo-50');
+            document.getElementById('class-type-hybrid-label').classList.remove('border-indigo-500', 'bg-indigo-50');
+
+            // Highlight selected and show/hide schedule sections
+            if (online.checked) {
+                document.getElementById('class-type-online-label').classList.add('border-indigo-500', 'bg-indigo-50');
+                onlineSection.classList.remove('hidden');
+                offlineSection.classList.add('hidden');
+            } else if (offline.checked) {
+                document.getElementById('class-type-offline-label').classList.add('border-indigo-500', 'bg-indigo-50');
+                onlineSection.classList.add('hidden');
+                offlineSection.classList.remove('hidden');
+            } else if (hybrid.checked) {
+                document.getElementById('class-type-hybrid-label').classList.add('border-indigo-500', 'bg-indigo-50');
+                onlineSection.classList.remove('hidden');
+                offlineSection.classList.remove('hidden');
+            }
+        }
+    </script>
 </x-app-layout>

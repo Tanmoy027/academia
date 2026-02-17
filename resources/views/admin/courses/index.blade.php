@@ -54,6 +54,7 @@
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Course</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Teacher</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Price / Duration</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Start / End Date</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -92,6 +93,28 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         {{ $course->duration ?? 'N/A' }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="text-sm text-gray-900">
+                                        @if($course->start_date)
+                                        <div class="flex items-center text-xs">
+                                            <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            {{ $course->start_date->format('M d, Y') }}
+                                        </div>
+                                        @else
+                                        <span class="text-xs text-gray-400">Not set</span>
+                                        @endif
+                                        @if($course->end_date)
+                                        <div class="flex items-center text-xs text-gray-500 mt-1">
+                                            <svg class="w-3 h-3 mr-1 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            {{ $course->end_date->format('M d, Y') }}
+                                        </div>
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-5">

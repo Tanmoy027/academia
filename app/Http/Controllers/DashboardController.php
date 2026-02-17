@@ -17,13 +17,21 @@ class DashboardController extends Controller
 
     public function teacher()
     {
+        $teacher = Auth::user();
+
+        // Get courses assigned to this teacher
+        $courses = Course::where('teacher_id', $teacher->id)
+            ->with('students')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         // Get notices for teachers (target_role = 'all' or 'teacher')
         $notices = Notice::forRole('teacher')
             ->latest()
             ->take(5)
             ->get();
 
-        return view('teacher.dashboard', compact('notices'));
+        return view('teacher.dashboard', compact('notices', 'courses'));
     }
 
     public function student()

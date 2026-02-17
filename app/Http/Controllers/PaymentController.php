@@ -26,6 +26,12 @@ class PaymentController extends Controller
         $course = Course::findOrFail($courseId);
         $user = Auth::user();
 
+        // Check if course has started (enrollment closed)
+        if (!$course->canEnroll()) {
+            return redirect()->route('courses.show', $courseId)
+                ->with('error', 'Enrollment for this course is closed as classes have already started.');
+        }
+
         // Check if already enrolled
         $isEnrolled = Enrollment::where('user_id', $user->id)
             ->where('course_id', $course->id)
@@ -46,6 +52,12 @@ class PaymentController extends Controller
     {
         $course = Course::findOrFail($courseId);
         $user = Auth::user();
+
+        // Check if course has started (enrollment closed)
+        if (!$course->canEnroll()) {
+            return redirect()->route('courses.show', $courseId)
+                ->with('error', 'Enrollment for this course is closed as classes have already started.');
+        }
 
         // Check if already enrolled
         $isEnrolled = Enrollment::where('user_id', $user->id)

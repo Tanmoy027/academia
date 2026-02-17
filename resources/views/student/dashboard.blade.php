@@ -158,14 +158,31 @@
                                     @endif
                                 </div>
                                 <div class="col-8">
-                                    <div class="card-body py-3 px-3">
+                                    <div class="card-body py-2 px-3">
                                         <h6 class="card-title fw-bold mb-1">{{ Str::limit($enrollment->course->title, 25) }}</h6>
-                                        <span class="badge {{ $enrollment->status == 'completed' ? 'bg-success' : 'bg-warning text-dark' }} mb-2">
-                                            {{ ucfirst($enrollment->status ?? 'Active') }}
-                                        </span>
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge {{ $enrollment->course->hasEnded() ? 'bg-success' : ($enrollment->course->hasStarted() ? 'bg-primary' : 'bg-warning text-dark') }}">
+                                                {{ $enrollment->course->getStatusLabel() }}
+                                            </span>
+                                        </div>
+                                        @if($enrollment->course->start_date && $enrollment->course->end_date)
+                                        <!-- Course Progress Bar -->
+                                        <div class="mb-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <small class="text-muted">Progress</small>
+                                                <small class="fw-bold text-primary">{{ $enrollment->course->getProgressPercentage() }}%</small>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" role="progressbar"
+                                                    style="width: {{ $enrollment->course->getProgressPercentage() }}%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+                                                    aria-valuenow="{{ $enrollment->course->getProgressPercentage() }}" aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
                                         <div>
                                             <a href="{{ route('courses.show', $enrollment->course->id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
-                                                Continue <i class="bi bi-arrow-right ms-1"></i>
+                                                {{ $enrollment->course->hasEnded() ? 'View' : 'Continue' }} <i class="bi bi-arrow-right ms-1"></i>
                                             </a>
                                         </div>
                                     </div>

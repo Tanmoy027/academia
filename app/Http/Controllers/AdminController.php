@@ -76,26 +76,61 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
-            'duration' => 'nullable|string',
             'teacher_id' => 'nullable|exists:users,id',
             'is_active' => 'boolean',
-            'days' => 'nullable|array',
-            'time' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after:start_date',
+            'class_type' => 'required|in:online,offline,hybrid',
+            'online_days' => 'nullable|array',
+            'online_time' => 'nullable|string',
+            'offline_days' => 'nullable|array',
+            'offline_time' => 'nullable|string',
         ]);
 
-        $schedule = null;
-        if ($request->has('days') && count($request->days) > 0) {
-            $schedule = implode(', ', $request->days);
-            if ($request->filled('time')) {
-                $schedule .= ' at ' . date('h:i A', strtotime($request->time));
+        // Build online schedule string
+        $onlineSchedule = null;
+        if ($request->has('online_days') && count($request->online_days) > 0) {
+            $onlineSchedule = implode('/', $request->online_days);
+            if ($request->filled('online_time')) {
+                $onlineSchedule .= ' ' . date('h:i A', strtotime($request->online_time));
             }
-        } elseif ($request->filled('time')) {
-            $schedule = 'Daily at ' . date('h:i A', strtotime($request->time));
+        }
+
+        // Build offline schedule string
+        $offlineSchedule = null;
+        if ($request->has('offline_days') && count($request->offline_days) > 0) {
+            $offlineSchedule = implode('/', $request->offline_days);
+            if ($request->filled('offline_time')) {
+                $offlineSchedule .= ' ' . date('h:i A', strtotime($request->offline_time));
+            }
+        }
+
+        // Set schedule based on class type
+        $schedule = null;
+        if ($validated['class_type'] === 'online') {
+            $schedule = $onlineSchedule;
+            $validated['online_schedule'] = $onlineSchedule;
+            $validated['offline_schedule'] = null;
+        } elseif ($validated['class_type'] === 'offline') {
+            $schedule = $offlineSchedule;
+            $validated['online_schedule'] = null;
+            $validated['offline_schedule'] = $offlineSchedule;
+        } else {
+            // Hybrid - combine both
+            $schedule = $onlineSchedule ? "Online: $onlineSchedule" : '';
+            if ($offlineSchedule) {
+                $schedule .= ($schedule ? ' | ' : '') . "Offline: $offlineSchedule";
+            }
+            $validated['online_schedule'] = $onlineSchedule;
+            $validated['offline_schedule'] = $offlineSchedule;
         }
 
         $validated['schedule'] = $schedule;
         $validated['is_active'] = $request->has('is_active');
+
+        // Remove the day/time fields from validated array
+        unset($validated['online_days'], $validated['online_time'], $validated['offline_days'], $validated['offline_time']);
 
         // Handle Image Upload
         if ($request->hasFile('image')) {
@@ -131,14 +166,61 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
-            'duration' => 'nullable|string',
             'teacher_id' => 'nullable|exists:users,id',
-            'schedule' => 'nullable|string',
             'is_active' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'class_type' => 'required|in:online,offline,hybrid',
+            'online_days' => 'nullable|array',
+            'online_time' => 'nullable|string',
+            'offline_days' => 'nullable|array',
+            'offline_time' => 'nullable|string',
         ]);
 
+        // Build online schedule string
+        $onlineSchedule = null;
+        if ($request->has('online_days') && count($request->online_days) > 0) {
+            $onlineSchedule = implode('/', $request->online_days);
+            if ($request->filled('online_time')) {
+                $onlineSchedule .= ' ' . date('h:i A', strtotime($request->online_time));
+            }
+        }
+
+        // Build offline schedule string
+        $offlineSchedule = null;
+        if ($request->has('offline_days') && count($request->offline_days) > 0) {
+            $offlineSchedule = implode('/', $request->offline_days);
+            if ($request->filled('offline_time')) {
+                $offlineSchedule .= ' ' . date('h:i A', strtotime($request->offline_time));
+            }
+        }
+
+        // Set schedule based on class type
+        $schedule = null;
+        if ($validated['class_type'] === 'online') {
+            $schedule = $onlineSchedule;
+            $validated['online_schedule'] = $onlineSchedule;
+            $validated['offline_schedule'] = null;
+        } elseif ($validated['class_type'] === 'offline') {
+            $schedule = $offlineSchedule;
+            $validated['online_schedule'] = null;
+            $validated['offline_schedule'] = $offlineSchedule;
+        } else {
+            // Hybrid - combine both
+            $schedule = $onlineSchedule ? "Online: $onlineSchedule" : '';
+            if ($offlineSchedule) {
+                $schedule .= ($schedule ? ' | ' : '') . "Offline: $offlineSchedule";
+            }
+            $validated['online_schedule'] = $onlineSchedule;
+            $validated['offline_schedule'] = $offlineSchedule;
+        }
+
+        $validated['schedule'] = $schedule;
         $validated['is_active'] = $request->has('is_active');
+
+        // Remove the day/time fields from validated array
+        unset($validated['online_days'], $validated['online_time'], $validated['offline_days'], $validated['offline_time']);
 
         // Handle Image Upload
         if ($request->hasFile('image')) {
