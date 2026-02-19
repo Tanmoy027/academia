@@ -64,6 +64,21 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::get('/courses/{id}', [TeacherController::class, 'showCourse'])->name('teacher.courses.show');
     Route::get('/courses/{id}/students', [TeacherController::class, 'courseStudents'])->name('teacher.courses.students');
     Route::get('/courses/{id}/materials', [TeacherController::class, 'courseMaterials'])->name('teacher.courses.materials');
+    
+    // Attendance Management
+    Route::get('/courses/{id}/attendance', [TeacherController::class, 'courseAttendance'])->name('teacher.courses.attendance');
+    Route::get('/courses/{id}/attendance/mark', [TeacherController::class, 'markAttendance'])->name('teacher.attendance.mark');
+    Route::post('/courses/{id}/attendance', [TeacherController::class, 'storeAttendance'])->name('teacher.attendance.store');
+    Route::get('/courses/{id}/attendance/show', [TeacherController::class, 'showAttendance'])->name('teacher.attendance.show');
+    Route::get('/courses/{id}/attendance/edit', [TeacherController::class, 'editAttendance'])->name('teacher.attendance.edit');
+    Route::get('/courses/{id}/students/{studentId}/attendance', [TeacherController::class, 'studentAttendanceStats'])->name('teacher.attendance.student-stats');
+    
+    // Teacher Profile Management
+    Route::get('/profile', [TeacherController::class, 'profile'])->name('teacher.profile');
+    Route::get('/profile/edit', [TeacherController::class, 'editProfile'])->name('teacher.profile.edit');
+    Route::put('/profile', [TeacherController::class, 'updateProfile'])->name('teacher.profile.update');
+    Route::post('/profile/picture', [TeacherController::class, 'uploadProfilePicture'])->name('teacher.profile.picture.upload');
+    Route::delete('/profile/picture', [TeacherController::class, 'deleteProfilePicture'])->name('teacher.profile.picture.delete');
 });
 
 Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {

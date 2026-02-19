@@ -22,6 +22,16 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'bio',
+        'phone',
+        'qualification',
+        'specialization',
+        'experience_years',
+        'profile_picture',
+        'social_links',
+        'address',
+        'city',
+        'country',
     ];
 
     /**
@@ -44,6 +54,32 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'social_links' => 'array',
+            'experience_years' => 'integer',
         ];
+    }
+
+    /**
+     * Get the courses taught by this teacher
+     */
+    public function teachingCourses()
+    {
+        return $this->hasMany(Course::class, 'teacher_id');
+    }
+
+    /**
+     * Get the enrollments for this student
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    /**
+     * Get all attendance records for this user
+     */
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
     }
 }

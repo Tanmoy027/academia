@@ -153,13 +153,13 @@
         </a>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="card h-100 bg-light">
+        <a href="{{ route('teacher.courses.attendance', $course->id) }}" class="card text-decoration-none h-100">
             <div class="card-body text-center">
-                <i class="bi bi-clipboard-check text-secondary" style="font-size: 2.5rem;"></i>
+                <i class="bi bi-clipboard-check text-warning" style="font-size: 2.5rem;"></i>
                 <h5 class="mt-2 mb-0 text-dark">Attendance</h5>
-                <p class="text-muted small mb-0">Coming Soon</p>
+                <p class="text-muted small mb-0">Mark and view attendance</p>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 

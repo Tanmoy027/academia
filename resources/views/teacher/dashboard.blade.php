@@ -10,9 +10,14 @@
     <div class="card-body">
         <h5 class="card-title">Welcome {{ Auth::user()->name }}!</h5>
         <p class="card-text">Manage your classes, students, and grades here.</p>
-        <a href="{{ route('teacher.courses') }}" class="btn btn-success">
-            <i class="bi bi-book"></i> View My Courses
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('teacher.courses') }}" class="btn btn-success">
+                <i class="bi bi-book"></i> View My Courses
+            </a>
+            <a href="{{ route('teacher.profile') }}" class="btn btn-outline-success">
+                <i class="bi bi-person"></i> My Profile
+            </a>
+        </div>
     </div>
 </div>
 

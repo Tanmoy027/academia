@@ -101,6 +101,14 @@ class Course extends Model
     }
 
     /**
+     * Get all attendance records for this course
+     */
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    /**
      * Check if enrollment is allowed (course hasn't started yet)
      */
     public function canEnroll(): bool
