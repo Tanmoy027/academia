@@ -134,7 +134,7 @@
 
 <!-- Quick Actions -->
 <div class="row mb-4">
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <a href="{{ route('teacher.courses.students', $course->id) }}" class="card text-decoration-none h-100">
             <div class="card-body text-center">
                 <i class="bi bi-people text-primary" style="font-size: 2.5rem;"></i>
@@ -143,7 +143,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <a href="{{ route('teacher.courses.materials', $course->id) }}" class="card text-decoration-none h-100">
             <div class="card-body text-center">
                 <i class="bi bi-folder text-success" style="font-size: 2.5rem;"></i>
@@ -152,12 +152,21 @@
             </div>
         </a>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <a href="{{ route('teacher.courses.attendance', $course->id) }}" class="card text-decoration-none h-100">
             <div class="card-body text-center">
                 <i class="bi bi-clipboard-check text-warning" style="font-size: 2.5rem;"></i>
                 <h5 class="mt-2 mb-0 text-dark">Attendance</h5>
                 <p class="text-muted small mb-0">Mark and view attendance</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="{{ route('teacher.courses.assignments', $course->id) }}" class="card text-decoration-none h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text text-info" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-2 mb-0 text-dark">Assignments</h5>
+                <p class="text-muted small mb-0">Create and manage assignments</p>
             </div>
         </a>
     </div>

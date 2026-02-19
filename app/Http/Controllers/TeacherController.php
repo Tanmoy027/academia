@@ -6,6 +6,8 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Models\Attendance;
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -380,5 +382,234 @@ class TeacherController extends Controller
         return redirect()
             ->route('teacher.profile')
             ->with('error', 'No profile picture to delete.');
+    }
+
+    /**
+     * Display assignments for a course
+     */
+    public function courseAssignments($id)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $assignments = Assignment::where('course_id', $id)
+            ->orderBy('due_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('teacher.assignments.index', compact('course', 'assignments'));
+    }
+
+    /**
+     * Show the form for creating a new assignment
+     */
+    public function createAssignment($id)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        return view('teacher.assignments.create', compact('course'));
+    }
+
+    /**
+     * Store a newly created assignment
+     */
+    public function storeAssignment(Request $request, $id)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'max_points' => 'required|integer|min:1|max:1000',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,txt,zip|max:10240',
+        ]);
+
+        $attachmentUrl = null;
+        
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = 'assignment_' . time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('assignments', $filename, 'public');
+            $attachmentUrl = '/storage/' . $path;
+        }
+
+        $assignment = Assignment::create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
+            'max_points' => $validated['max_points'],
+            'attachment_url' => $attachmentUrl,
+            'is_published' => $request->has('is_published'),
+        ]);
+
+        return redirect()
+            ->route('teacher.courses.assignments', $course->id)
+            ->with('success', 'Assignment created successfully!');
+    }
+
+    /**
+     * Display a specific assignment with submissions
+     */
+    public function showAssignment($courseId, $assignmentId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $assignment = Assignment::where('id', $assignmentId)
+            ->where('course_id', $courseId)
+            ->with(['submissions.student'])
+            ->firstOrFail();
+
+        // Get all enrolled students
+        $enrolledStudents = $course->students;
+        
+        // Get submissions
+        $submissions = $assignment->submissions;
+        
+        // Create a list of students who haven't submitted
+        $submittedUserIds = $submissions->pluck('user_id')->toArray();
+        $notSubmittedStudents = $enrolledStudents->reject(function($student) use ($submittedUserIds) {
+            return in_array($student->id, $submittedUserIds);
+        });
+
+        return view('teacher.assignments.show', compact('course', 'assignment', 'submissions', 'notSubmittedStudents'));
+    }
+
+    /**
+     * Show the form for editing an assignment
+     */
+    public function editAssignment($courseId, $assignmentId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $assignment = Assignment::where('id', $assignmentId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        return view('teacher.assignments.edit', compact('course', 'assignment'));
+    }
+
+    /**
+     * Update an assignment
+     */
+    public function updateAssignment(Request $request, $courseId, $assignmentId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $assignment = Assignment::where('id', $assignmentId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'max_points' => 'required|integer|min:1|max:1000',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,txt,zip|max:10240',
+        ]);
+
+        $attachmentUrl = $assignment->attachment_url;
+        
+        if ($request->hasFile('attachment')) {
+            // Delete old attachment if exists
+            if ($assignment->attachment_url) {
+                $oldPath = str_replace('/storage/', '', $assignment->attachment_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            
+            $file = $request->file('attachment');
+            $filename = 'assignment_' . time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('assignments', $filename, 'public');
+            $attachmentUrl = '/storage/' . $path;
+        }
+
+        $assignment->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
+            'max_points' => $validated['max_points'],
+            'attachment_url' => $attachmentUrl,
+            'is_published' => $request->has('is_published'),
+        ]);
+
+        return redirect()
+            ->route('teacher.assignments.show', ['courseId' => $course->id, 'assignmentId' => $assignment->id])
+            ->with('success', 'Assignment updated successfully!');
+    }
+
+    /**
+     * Delete an assignment
+     */
+    public function deleteAssignment($courseId, $assignmentId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $assignment = Assignment::where('id', $assignmentId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        // Delete attachment file if exists
+        if ($assignment->attachment_url) {
+            $path = str_replace('/storage/', '', $assignment->attachment_url);
+            Storage::disk('public')->delete($path);
+        }
+
+        $assignment->delete();
+
+        return redirect()
+            ->route('teacher.courses.assignments', $course->id)
+            ->with('success', 'Assignment deleted successfully!');
+    }
+
+    /**
+     * Delete assignment attachment
+     */
+    public function deleteAssignmentAttachment($courseId, $assignmentId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $assignment = Assignment::where('id', $assignmentId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        if ($assignment->attachment_url) {
+            $path = str_replace('/storage/', '', $assignment->attachment_url);
+            Storage::disk('public')->delete($path);
+            
+            $assignment->update(['attachment_url' => null]);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Attachment deleted successfully!');
+        }
+
+        return redirect()
+            ->back()
+            ->with('error', 'No attachment to delete.');
     }
 }

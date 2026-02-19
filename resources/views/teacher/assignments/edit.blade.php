@@ -1,0 +1,139 @@
+@extends('layouts.bootstrap')
+
+@section('title', 'Edit Assignment - ' . $assignment->title)
+
+@section('content')
+<div class="mb-3">
+    <a href="{{ route('teacher.assignments.show', ['courseId' => $course->id, 'assignmentId' => $assignment->id]) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Assignment
+    </a>
+</div>
+
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <h6 class="mb-2"><i class="bi bi-exclamation-triangle"></i> Please fix the following errors:</h6>
+    <ul class="mb-0">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+<div class="card">
+    <div class="card-header">
+        <h4 class="mb-0">Edit Assignment</h4>
+        <p class="text-muted mb-0">{{ $course->title }}</p>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('teacher.assignments.update', ['courseId' => $course->id, 'assignmentId' => $assignment->id]) }}" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            
+            <!-- Assignment Title -->
+            <div class="mb-3">
+                <label for="title" class="form-label">Assignment Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control @error('title') is-invalid @enderror" 
+                       id="title" name="title" value="{{ old('title', $assignment->title) }}" 
+                       placeholder="Enter assignment title" required>
+                @error('title')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+                <label for="description" class="form-label">Description / Instructions</label>
+                <textarea class="form-control @error('description') is-invalid @enderror" 
+                          id="description" name="description" rows="6"
+                          placeholder="Enter detailed assignment instructions...">{{ old('description', $assignment->description) }}</textarea>
+                @error('description')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                <small class="text-muted">Provide clear instructions for students</small>
+            </div>
+
+            <!-- Due Date and Points -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="due_date" class="form-label">Due Date & Time</label>
+                    <input type="datetime-local" class="form-control @error('due_date') is-invalid @enderror" 
+                           id="due_date" name="due_date" 
+                           value="{{ old('due_date', $assignment->due_date ? $assignment->due_date->format('Y-m-d\TH:i') : '') }}">
+                    @error('due_date')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Leave empty for no due date</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="max_points" class="form-label">Maximum Points <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control @error('max_points') is-invalid @enderror" 
+                           id="max_points" name="max_points" value="{{ old('max_points', $assignment->max_points) }}" 
+                           min="1" max="1000" required>
+                    @error('max_points')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Current Attachment -->
+            @if($assignment->attachment_url)
+            <div class="mb-3">
+                <label class="form-label">Current Attachment</label>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ $assignment->attachment_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-download"></i> View Current Attachment
+                    </a>
+                    <form method="POST" action="{{ route('teacher.assignments.attachment.delete', ['courseId' => $course->id, 'assignmentId' => $assignment->id]) }}" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                onclick="return confirm('Are you sure you want to delete this attachment?')">
+                            <i class="bi bi-trash"></i> Delete Attachment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endif
+
+            <!-- New Attachment -->
+            <div class="mb-3">
+                <label for="attachment" class="form-label">
+                    {{ $assignment->attachment_url ? 'Replace Attachment (Optional)' : 'Add Attachment (Optional)' }}
+                </label>
+                <input type="file" class="form-control @error('attachment') is-invalid @enderror" 
+                       id="attachment" name="attachment" accept=".pdf,.doc,.docx,.txt,.zip">
+                @error('attachment')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                <small class="text-muted">Allowed: PDF, DOC, DOCX, TXT, ZIP. Max size: 10MB</small>
+            </div>
+
+            <!-- Publish Status -->
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="is_published" name="is_published" 
+                           {{ old('is_published', $assignment->is_published) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="is_published">
+                        Published (students can see this assignment)
+                    </label>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ route('teacher.assignments.show', ['courseId' => $course->id, 'assignmentId' => $assignment->id]) }}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Update Assignment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

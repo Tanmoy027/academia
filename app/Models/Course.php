@@ -109,6 +109,14 @@ class Course extends Model
     }
 
     /**
+     * Get all assignments for this course
+     */
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class);
+    }
+
+    /**
      * Check if enrollment is allowed (course hasn't started yet)
      */
     public function canEnroll(): bool

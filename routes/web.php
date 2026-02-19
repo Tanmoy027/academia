@@ -79,6 +79,16 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::put('/profile', [TeacherController::class, 'updateProfile'])->name('teacher.profile.update');
     Route::post('/profile/picture', [TeacherController::class, 'uploadProfilePicture'])->name('teacher.profile.picture.upload');
     Route::delete('/profile/picture', [TeacherController::class, 'deleteProfilePicture'])->name('teacher.profile.picture.delete');
+    
+    // Assignment Management
+    Route::get('/courses/{id}/assignments', [TeacherController::class, 'courseAssignments'])->name('teacher.courses.assignments');
+    Route::get('/courses/{id}/assignments/create', [TeacherController::class, 'createAssignment'])->name('teacher.assignments.create');
+    Route::post('/courses/{id}/assignments', [TeacherController::class, 'storeAssignment'])->name('teacher.assignments.store');
+    Route::get('/courses/{courseId}/assignments/{assignmentId}', [TeacherController::class, 'showAssignment'])->name('teacher.assignments.show');
+    Route::get('/courses/{courseId}/assignments/{assignmentId}/edit', [TeacherController::class, 'editAssignment'])->name('teacher.assignments.edit');
+    Route::put('/courses/{courseId}/assignments/{assignmentId}', [TeacherController::class, 'updateAssignment'])->name('teacher.assignments.update');
+    Route::delete('/courses/{courseId}/assignments/{assignmentId}', [TeacherController::class, 'deleteAssignment'])->name('teacher.assignments.delete');
+    Route::delete('/courses/{courseId}/assignments/{assignmentId}/attachment', [TeacherController::class, 'deleteAssignmentAttachment'])->name('teacher.assignments.attachment.delete');
 });
 
 Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
