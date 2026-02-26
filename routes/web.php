@@ -7,15 +7,15 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PerformanceController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherDirectoryController;
 use App\Http\Controllers\TeacherSalaryController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [LandingController::class, 'home'])->name('home');
+Route::get('/about', [LandingController::class, 'about'])->name('about');
 
 Route::get('/dashboard', function () {
     /** @var \App\Models\User|null $user */

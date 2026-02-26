@@ -296,6 +296,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('home') }}">
+                            <i class="bi bi-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('courses.index') }}">
                             <i class="bi bi-book me-1"></i>Courses
                         </a>
@@ -303,6 +308,11 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('teachers.index') }}">
                             <i class="bi bi-people me-1"></i>Teachers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('about') }}">
+                            <i class="bi bi-info-circle me-1"></i>About
                         </a>
                     </li>
                     @auth
