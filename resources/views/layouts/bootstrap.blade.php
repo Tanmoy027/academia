@@ -300,6 +300,11 @@
                             <i class="bi bi-book me-1"></i>Courses
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ route('teachers.index') }}">
+                            <i class="bi bi-people me-1"></i>Teachers
+                        </a>
+                    </li>
                     @auth
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('dashboard') }}">

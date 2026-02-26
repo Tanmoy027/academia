@@ -8,6 +8,7 @@ use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TeacherDirectoryController;
 use App\Http\Controllers\TeacherSalaryController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -140,6 +141,10 @@ Route::middleware('auth')->group(function () {
 // Public Course Routes
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
 Route::get('/courses/{id}', [CourseController::class, 'show'])->name('courses.show');
+
+// Public Teacher Routes
+Route::get('/teachers', [TeacherDirectoryController::class, 'index'])->name('teachers.index');
+Route::get('/teachers/{teacher}', [TeacherDirectoryController::class, 'show'])->name('teachers.show');
 
 // Payment Routes (requires authentication)
 Route::middleware('auth')->group(function () {
