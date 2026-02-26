@@ -81,11 +81,8 @@ class AdminController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after:start_date',
-            'class_type' => 'required|in:online,offline,hybrid',
             'online_days' => 'nullable|array',
             'online_time' => 'nullable|string',
-            'offline_days' => 'nullable|array',
-            'offline_time' => 'nullable|string',
         ]);
 
         // Build online schedule string
@@ -97,40 +94,14 @@ class AdminController extends Controller
             }
         }
 
-        // Build offline schedule string
-        $offlineSchedule = null;
-        if ($request->has('offline_days') && count($request->offline_days) > 0) {
-            $offlineSchedule = implode('/', $request->offline_days);
-            if ($request->filled('offline_time')) {
-                $offlineSchedule .= ' ' . date('h:i A', strtotime($request->offline_time));
-            }
-        }
-
-        // Set schedule based on class type
-        $schedule = null;
-        if ($validated['class_type'] === 'online') {
-            $schedule = $onlineSchedule;
-            $validated['online_schedule'] = $onlineSchedule;
-            $validated['offline_schedule'] = null;
-        } elseif ($validated['class_type'] === 'offline') {
-            $schedule = $offlineSchedule;
-            $validated['online_schedule'] = null;
-            $validated['offline_schedule'] = $offlineSchedule;
-        } else {
-            // Hybrid - combine both
-            $schedule = $onlineSchedule ? "Online: $onlineSchedule" : '';
-            if ($offlineSchedule) {
-                $schedule .= ($schedule ? ' | ' : '') . "Offline: $offlineSchedule";
-            }
-            $validated['online_schedule'] = $onlineSchedule;
-            $validated['offline_schedule'] = $offlineSchedule;
-        }
-
-        $validated['schedule'] = $schedule;
+        $validated['class_type'] = Course::CLASS_TYPE_ONLINE;
+        $validated['online_schedule'] = $onlineSchedule;
+        $validated['offline_schedule'] = null;
+        $validated['schedule'] = $onlineSchedule;
         $validated['is_active'] = $request->has('is_active');
 
         // Remove the day/time fields from validated array
-        unset($validated['online_days'], $validated['online_time'], $validated['offline_days'], $validated['offline_time']);
+        unset($validated['online_days'], $validated['online_time']);
 
         // Handle Image Upload
         if ($request->hasFile('image')) {
@@ -171,11 +142,8 @@ class AdminController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'class_type' => 'required|in:online,offline,hybrid',
             'online_days' => 'nullable|array',
             'online_time' => 'nullable|string',
-            'offline_days' => 'nullable|array',
-            'offline_time' => 'nullable|string',
         ]);
 
         // Build online schedule string
@@ -187,40 +155,14 @@ class AdminController extends Controller
             }
         }
 
-        // Build offline schedule string
-        $offlineSchedule = null;
-        if ($request->has('offline_days') && count($request->offline_days) > 0) {
-            $offlineSchedule = implode('/', $request->offline_days);
-            if ($request->filled('offline_time')) {
-                $offlineSchedule .= ' ' . date('h:i A', strtotime($request->offline_time));
-            }
-        }
-
-        // Set schedule based on class type
-        $schedule = null;
-        if ($validated['class_type'] === 'online') {
-            $schedule = $onlineSchedule;
-            $validated['online_schedule'] = $onlineSchedule;
-            $validated['offline_schedule'] = null;
-        } elseif ($validated['class_type'] === 'offline') {
-            $schedule = $offlineSchedule;
-            $validated['online_schedule'] = null;
-            $validated['offline_schedule'] = $offlineSchedule;
-        } else {
-            // Hybrid - combine both
-            $schedule = $onlineSchedule ? "Online: $onlineSchedule" : '';
-            if ($offlineSchedule) {
-                $schedule .= ($schedule ? ' | ' : '') . "Offline: $offlineSchedule";
-            }
-            $validated['online_schedule'] = $onlineSchedule;
-            $validated['offline_schedule'] = $offlineSchedule;
-        }
-
-        $validated['schedule'] = $schedule;
+        $validated['class_type'] = Course::CLASS_TYPE_ONLINE;
+        $validated['online_schedule'] = $onlineSchedule;
+        $validated['offline_schedule'] = null;
+        $validated['schedule'] = $onlineSchedule;
         $validated['is_active'] = $request->has('is_active');
 
         // Remove the day/time fields from validated array
-        unset($validated['online_days'], $validated['online_time'], $validated['offline_days'], $validated['offline_time']);
+        unset($validated['online_days'], $validated['online_time']);
 
         // Handle Image Upload
         if ($request->hasFile('image')) {

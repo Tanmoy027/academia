@@ -61,6 +61,48 @@ return [
             'report' => false,
         ],
 
+        'courseprofile' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_ACCESS_KEY', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('SUPABASE_SECRET_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('SUPABASE_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'bucket' => env('SUPABASE_COURSE_BUCKET', env('AWS_BUCKET', 'courseprofile')),
+            'url' => (function () {
+                $supabaseBase = rtrim(env('SUPABASE_PUBLIC_URL', ''), '/');
+                if ($supabaseBase !== '') {
+                    return $supabaseBase . '/' . env('SUPABASE_COURSE_BUCKET', env('AWS_BUCKET', 'courseprofile'));
+                }
+
+                return rtrim(env('AWS_URL', ''), '/');
+            })(),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT', env('AWS_ENDPOINT')),
+            'use_path_style_endpoint' => env('SUPABASE_USE_PATH_STYLE_ENDPOINT', env('AWS_USE_PATH_STYLE_ENDPOINT', true)),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'userprofile' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_ACCESS_KEY', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('SUPABASE_SECRET_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('SUPABASE_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'bucket' => env('SUPABASE_USER_BUCKET', env('AWS_BUCKET', 'userprofile')),
+            'url' => (function () {
+                $supabaseBase = rtrim(env('SUPABASE_PUBLIC_URL', ''), '/');
+                if ($supabaseBase !== '') {
+                    return $supabaseBase . '/' . env('SUPABASE_USER_BUCKET', env('AWS_BUCKET', 'userprofile'));
+                }
+
+                return rtrim(env('AWS_URL', ''), '/');
+            })(),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT', env('AWS_ENDPOINT')),
+            'use_path_style_endpoint' => env('SUPABASE_USE_PATH_STYLE_ENDPOINT', env('AWS_USE_PATH_STYLE_ENDPOINT', true)),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*
@@ -77,5 +119,7 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
     ],
+
+    'user_profile_disk' => env('USER_PROFILE_DISK', 'courseprofile'),
 
 ];

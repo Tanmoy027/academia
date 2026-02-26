@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Notice;
 use App\Models\Enrollment;
+use App\Services\PerformanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,7 +32,16 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('teacher.dashboard', compact('notices', 'courses'));
+        $performanceService = app(PerformanceService::class);
+        $coursePerformance = $courses->mapWithKeys(function ($course) use ($performanceService) {
+            return [$course->id => $performanceService->summarizeCourse($course)];
+        });
+
+        return view('teacher.dashboard', [
+            'notices' => $notices,
+            'courses' => $courses,
+            'coursePerformance' => $coursePerformance,
+        ]);
     }
 
     public function student()
@@ -49,7 +59,7 @@ class DashboardController extends Controller
 
         // Get enrolled courses for this student
         $enrolledCourses = Enrollment::where('user_id', $user->id)
-            ->with('course')
+            ->with(['course', 'course.teacher'])
             ->latest()
             ->get();
 
@@ -68,6 +78,24 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('student.dashboard', compact('courses', 'notices', 'enrolledCourses', 'stats', 'upcomingClasses'));
+        $performanceService = app(PerformanceService::class);
+        $performanceInsights = $enrolledCourses->mapWithKeys(function ($enrollment) use ($performanceService, $user) {
+            $course = $enrollment->course;
+
+            if (!$course) {
+                return [];
+            }
+
+            return [$course->id => $performanceService->getStudentCoursePerformance($user, $course)];
+        });
+
+        return view('student.dashboard', [
+            'courses' => $courses,
+            'notices' => $notices,
+            'enrolledCourses' => $enrolledCourses,
+            'stats' => $stats,
+            'upcomingClasses' => $upcomingClasses,
+            'performanceInsights' => $performanceInsights,
+        ]);
     }
 }

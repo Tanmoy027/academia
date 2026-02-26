@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TeacherSalaryController;
 use Illuminate\Support\Facades\Route;
@@ -95,6 +96,8 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::get('/courses/{id}', [TeacherController::class, 'showCourse'])->name('teacher.courses.show');
     Route::get('/courses/{id}/students', [TeacherController::class, 'courseStudents'])->name('teacher.courses.students');
     Route::get('/courses/{id}/materials', [TeacherController::class, 'courseMaterials'])->name('teacher.courses.materials');
+    Route::get('/courses/{id}/performance', [PerformanceController::class, 'teacherCourse'])->name('teacher.courses.performance');
+    Route::get('/courses/{courseId}/students/{studentId}/performance', [PerformanceController::class, 'teacherStudent'])->name('teacher.students.performance');
 
     // Attendance Management
     Route::get('/courses/{id}/attendance', [TeacherController::class, 'courseAttendance'])->name('teacher.courses.attendance');
@@ -125,6 +128,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
 Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
     Route::get('/notices', [NoticeController::class, 'studentNotices'])->name('student.notices');
+    Route::get('/courses/{courseId}/performance', [PerformanceController::class, 'studentCourse'])->name('student.courses.performance');
 });
 
 Route::middleware('auth')->group(function () {

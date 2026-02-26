@@ -13,9 +13,37 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
         @csrf
         @method('patch')
+
+        <div>
+            <x-input-label for="profile_picture" :value="__('Profile Photo')" />
+            <div class="mt-2 flex items-center gap-4">
+                @if ($user->profile_picture_url)
+                <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="h-16 w-16 rounded-full object-cover">
+                @else
+                <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-500">
+                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                </div>
+                @endif
+
+                <div>
+                    <input id="profile_picture" name="profile_picture" type="file" accept="image/*"
+                        class="block w-full text-sm text-gray-600" />
+                    <p class="mt-1 text-xs text-gray-500">{{ __('PNG, JPG, JPEG up to 2MB.') }}</p>
+                </div>
+            </div>
+            <x-input-error class="mt-2" :messages="$errors->get('profile_picture')" />
+
+            @if ($user->profile_picture_url)
+            <label class="mt-3 inline-flex items-center text-sm text-gray-600">
+                <input type="checkbox" name="remove_profile_picture" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                <span class="ml-2">{{ __('Remove current photo') }}</span>
+            </label>
+            <x-input-error class="mt-2" :messages="$errors->get('remove_profile_picture')" />
+            @endif
+        </div>
 
         <div>
             <x-input-label for="name" :value="__('Name')" />
@@ -29,21 +57,21 @@
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+            <div>
+                <p class="text-sm mt-2 text-gray-800">
+                    {{ __('Your email address is unverified.') }}
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
+                    <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {{ __('Click here to re-send the verification email.') }}
+                    </button>
+                </p>
 
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
+                @if (session('status') === 'verification-link-sent')
+                <p class="mt-2 font-medium text-sm text-green-600">
+                    {{ __('A new verification link has been sent to your email address.') }}
+                </p>
+                @endif
+            </div>
             @endif
         </div>
 
@@ -51,13 +79,12 @@
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
             @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
+            <p
+                x-data="{ show: true }"
+                x-show="show"
+                x-transition
+                x-init="setTimeout(() => show = false, 2000)"
+                class="text-sm text-gray-600">{{ __('Saved.') }}</p>
             @endif
         </div>
     </form>

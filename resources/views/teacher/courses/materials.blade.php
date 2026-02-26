@@ -17,8 +17,6 @@
             @php
             $typeColors = [
             'online' => 'bg-info',
-            'offline' => 'bg-warning text-dark',
-            'hybrid' => 'bg-purple text-white',
             ];
             $badgeClass = $typeColors[$course->class_type] ?? 'bg-secondary';
             @endphp

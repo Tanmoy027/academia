@@ -26,8 +26,6 @@
                             @php
                             $typeColors = [
                             'online' => 'bg-info',
-                            'offline' => 'bg-warning text-dark',
-                            'hybrid' => 'bg-purple text-white',
                             ];
                             $badgeClass = $typeColors[$course->class_type] ?? 'bg-secondary';
                             @endphp
@@ -95,41 +93,20 @@
 
 <!-- Schedule Information -->
 <div class="row mb-4">
-    @if($course->isOnline() || $course->isHybrid())
     <div class="col-md-6 mb-3">
         <div class="card h-100 border-info">
             <div class="card-header bg-info text-white">
-                <i class="bi bi-camera-video"></i> Online Class Schedule
+                <i class="bi bi-camera-video"></i> Class Schedule
             </div>
             <div class="card-body">
-                @if($course->online_schedule)
-                <p class="mb-0">{{ $course->online_schedule }}</p>
+                @if($course->online_schedule ?? $course->schedule)
+                <p class="mb-0">{{ $course->online_schedule ?? $course->schedule }}</p>
                 @else
-                <p class="text-muted mb-0">No online schedule set</p>
+                <p class="text-muted mb-0">No schedule set</p>
                 @endif
             </div>
         </div>
     </div>
-    @endif
-
-    @if($course->isOffline() || $course->isHybrid())
-    <div class="col-md-6 mb-3">
-        <div class="card h-100 border-warning">
-            <div class="card-header bg-warning text-dark">
-                <i class="bi bi-building"></i> Offline Class Schedule
-            </div>
-            <div class="card-body">
-                @if($course->offline_schedule)
-                <p class="mb-0">{{ $course->offline_schedule }}</p>
-                @elseif($course->schedule)
-                <p class="mb-0">{{ $course->schedule }}</p>
-                @else
-                <p class="text-muted mb-0">No offline schedule set</p>
-                @endif
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
 
 <!-- Quick Actions -->
@@ -167,6 +144,15 @@
                 <i class="bi bi-file-earmark-text text-info" style="font-size: 2.5rem;"></i>
                 <h5 class="mt-2 mb-0 text-dark">Assignments</h5>
                 <p class="text-muted small mb-0">Create and manage assignments</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="{{ route('teacher.courses.performance', $course->id) }}" class="card text-decoration-none h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up-arrow text-primary" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-2 mb-0 text-dark">Performance</h5>
+                <p class="text-muted small mb-0">View student performance</p>
             </div>
         </a>
     </div>

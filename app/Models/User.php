@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -101,5 +103,24 @@ class User extends Authenticatable
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if (!$this->profile_picture) {
+            return null;
+        }
+
+        if (Str::startsWith($this->profile_picture, ['http://', 'https://'])) {
+            return $this->profile_picture;
+        }
+
+        if (Str::startsWith($this->profile_picture, '/storage/')) {
+            return url($this->profile_picture);
+        }
+
+        $disk = config('filesystems.user_profile_disk', 'public');
+
+        return Storage::disk($disk)->url($this->profile_picture);
     }
 }

@@ -69,45 +69,8 @@
                             </p>
                         </div>
 
-                        <!-- Class Type Selection -->
                         <div class="mb-6">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">Class Type: <span class="text-red-500">*</span></label>
-                            <div class="grid grid-cols-3 gap-4">
-                                <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" id="class-type-online-label">
-                                    <input type="radio" name="class_type" value="online" class="sr-only" id="class-type-online" onchange="toggleClassTypeUI()">
-                                    <div class="text-center">
-                                        <svg class="w-8 h-8 mx-auto mb-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                        <span class="font-semibold">Online</span>
-                                        <p class="text-xs text-gray-500 mt-1">Virtual classes only</p>
-                                    </div>
-                                </label>
-                                <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors border-blue-500 bg-blue-50" id="class-type-offline-label">
-                                    <input type="radio" name="class_type" value="offline" class="sr-only" id="class-type-offline" checked onchange="toggleClassTypeUI()">
-                                    <div class="text-center">
-                                        <svg class="w-8 h-8 mx-auto mb-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                        </svg>
-                                        <span class="font-semibold">Offline</span>
-                                        <p class="text-xs text-gray-500 mt-1">In-person classes only</p>
-                                    </div>
-                                </label>
-                                <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" id="class-type-hybrid-label">
-                                    <input type="radio" name="class_type" value="hybrid" class="sr-only" id="class-type-hybrid" onchange="toggleClassTypeUI()">
-                                    <div class="text-center">
-                                        <svg class="w-8 h-8 mx-auto mb-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                        </svg>
-                                        <span class="font-semibold">Both (Hybrid)</span>
-                                        <p class="text-xs text-gray-500 mt-1">Mix of online & offline</p>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Online Schedule (shown when online or hybrid is selected) -->
-                        <div class="mb-6 hidden" id="online-schedule-section">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Online Class Schedule</label>
                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                 <h4 class="font-bold text-blue-800 mb-4">
                                     <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,32 +91,6 @@
                                 <div class="flex items-center">
                                     <span class="block text-xs text-gray-500 mr-2 font-bold uppercase tracking-wide">Select Time</span>
                                     <input type="time" name="online_time" class="shadow appearance-none border rounded py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Offline Schedule (shown when offline or hybrid is selected) -->
-                        <div class="mb-6" id="offline-schedule-section">
-                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <h4 class="font-bold text-green-800 mb-4">
-                                    <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                    Offline Class Schedule
-                                </h4>
-                                <span class="block text-xs text-gray-500 mb-2 font-bold uppercase tracking-wide">Select Days</span>
-                                <div class="flex flex-wrap gap-4 mb-4">
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Mon" class="form-checkbox text-green-600"><span class="ml-2">Mon</span></label>
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Tue" class="form-checkbox text-green-600"><span class="ml-2">Tue</span></label>
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Wed" class="form-checkbox text-green-600"><span class="ml-2">Wed</span></label>
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Thu" class="form-checkbox text-green-600"><span class="ml-2">Thu</span></label>
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Fri" class="form-checkbox text-green-600"><span class="ml-2">Fri</span></label>
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Sat" class="form-checkbox text-green-600"><span class="ml-2">Sat</span></label>
-                                    <label class="inline-flex items-center"><input type="checkbox" name="offline_days[]" value="Sun" class="form-checkbox text-green-600"><span class="ml-2">Sun</span></label>
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="block text-xs text-gray-500 mr-2 font-bold uppercase tracking-wide">Select Time</span>
-                                    <input type="time" name="offline_time" class="shadow appearance-none border rounded py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                                 </div>
                             </div>
                         </div>
@@ -181,34 +118,7 @@
             </div>
         </div>
     </div>
-
     <script>
-        function toggleClassTypeUI() {
-            const online = document.getElementById('class-type-online');
-            const offline = document.getElementById('class-type-offline');
-            const hybrid = document.getElementById('class-type-hybrid');
-            const onlineSection = document.getElementById('online-schedule-section');
-            const offlineSection = document.getElementById('offline-schedule-section');
-
-            // Reset all labels
-            document.getElementById('class-type-online-label').classList.remove('border-blue-500', 'bg-blue-50');
-            document.getElementById('class-type-offline-label').classList.remove('border-blue-500', 'bg-blue-50');
-            document.getElementById('class-type-hybrid-label').classList.remove('border-blue-500', 'bg-blue-50');
-
-            // Highlight selected and show/hide schedule sections
-            if (online.checked) {
-                document.getElementById('class-type-online-label').classList.add('border-blue-500', 'bg-blue-50');
-                onlineSection.classList.remove('hidden');
-                offlineSection.classList.add('hidden');
-            } else if (offline.checked) {
-                document.getElementById('class-type-offline-label').classList.add('border-blue-500', 'bg-blue-50');
-                onlineSection.classList.add('hidden');
-                offlineSection.classList.remove('hidden');
-            } else if (hybrid.checked) {
-                document.getElementById('class-type-hybrid-label').classList.add('border-blue-500', 'bg-blue-50');
-                onlineSection.classList.remove('hidden');
-                offlineSection.classList.remove('hidden');
-            }
-        }
+        // No additional JS is required for schedule inputs now that classes are online-only
     </script>
 </x-app-layout>

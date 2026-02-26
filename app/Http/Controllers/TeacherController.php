@@ -11,10 +11,13 @@ use App\Models\AssignmentSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\UserProfilePhotoService;
 use Carbon\Carbon;
 
 class TeacherController extends Controller
 {
+    public function __construct(private readonly UserProfilePhotoService $photoService) {}
+
     /**
      * Display a listing of teacher's courses.
      */
@@ -89,7 +92,7 @@ class TeacherController extends Controller
             ->orderBy('date', 'desc')
             ->orderBy('type')
             ->get()
-            ->groupBy(function($item) {
+            ->groupBy(function ($item) {
                 return $item->date->format('Y-m-d') . '_' . $item->type;
             });
 
@@ -250,7 +253,7 @@ class TeacherController extends Controller
         $teacher = Auth::user();
         $coursesCount = $teacher->teachingCourses()->count();
         $studentsCount = Enrollment::whereIn('course_id', $teacher->teachingCourses()->pluck('id'))->distinct('user_id')->count();
-        
+
         return view('teacher.profile.index', compact('teacher', 'coursesCount', 'studentsCount'));
     }
 
@@ -333,20 +336,10 @@ class TeacherController extends Controller
         ]);
 
         if ($request->hasFile('profile_picture')) {
-            $file = $request->file('profile_picture');
-            $filename = 'profile_' . $teacher->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            
-            // Store in public/storage/profiles directory
-            $path = $file->storeAs('profiles', $filename, 'public');
-            
-            // Delete old profile picture if exists
-            if ($teacher->profile_picture) {
-                $oldPath = str_replace('/storage/', '', $teacher->profile_picture);
-                \Storage::disk('public')->delete($oldPath);
-            }
-            
+            $path = $this->photoService->store($teacher, $request->file('profile_picture'));
+
             $teacher->update([
-                'profile_picture' => '/storage/' . $path,
+                'profile_picture' => $path,
             ]);
 
             return redirect()
@@ -367,12 +360,7 @@ class TeacherController extends Controller
         $teacher = Auth::user();
 
         if ($teacher->profile_picture) {
-            $path = str_replace('/storage/', '', $teacher->profile_picture);
-            \Storage::disk('public')->delete($path);
-            
-            $teacher->update([
-                'profile_picture' => null,
-            ]);
+            $this->photoService->delete($teacher);
 
             return redirect()
                 ->route('teacher.profile')
@@ -434,7 +422,7 @@ class TeacherController extends Controller
         ]);
 
         $attachmentUrl = null;
-        
+
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
             $filename = 'assignment_' . time() . '_' . $file->getClientOriginalName();
@@ -475,13 +463,13 @@ class TeacherController extends Controller
 
         // Get all enrolled students
         $enrolledStudents = $course->students;
-        
+
         // Get submissions
         $submissions = $assignment->submissions;
-        
+
         // Create a list of students who haven't submitted
         $submittedUserIds = $submissions->pluck('user_id')->toArray();
-        $notSubmittedStudents = $enrolledStudents->reject(function($student) use ($submittedUserIds) {
+        $notSubmittedStudents = $enrolledStudents->reject(function ($student) use ($submittedUserIds) {
             return in_array($student->id, $submittedUserIds);
         });
 
@@ -528,14 +516,14 @@ class TeacherController extends Controller
         ]);
 
         $attachmentUrl = $assignment->attachment_url;
-        
+
         if ($request->hasFile('attachment')) {
             // Delete old attachment if exists
             if ($assignment->attachment_url) {
                 $oldPath = str_replace('/storage/', '', $assignment->attachment_url);
                 Storage::disk('public')->delete($oldPath);
             }
-            
+
             $file = $request->file('attachment');
             $filename = 'assignment_' . time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('assignments', $filename, 'public');
@@ -600,7 +588,7 @@ class TeacherController extends Controller
         if ($assignment->attachment_url) {
             $path = str_replace('/storage/', '', $assignment->attachment_url);
             Storage::disk('public')->delete($path);
-            
+
             $assignment->update(['attachment_url' => null]);
 
             return redirect()

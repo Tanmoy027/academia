@@ -41,8 +41,6 @@
                             @php
                             $typeColors = [
                             'online' => 'bg-info',
-                            'offline' => 'bg-warning text-dark',
-                            'hybrid' => 'bg-purple text-white',
                             ];
                             $badgeClass = $typeColors[$course->class_type] ?? 'bg-secondary';
                             @endphp
@@ -83,9 +81,35 @@
                     @endif
                 </div>
         </div>
-        </a>
-        @endforeach
+        @php
+        $performance = isset($coursePerformance) ? $coursePerformance->get($course->id) : null;
+        @endphp
+        <div class="mt-3">
+            <div class="d-flex flex-wrap gap-3 align-items-center small text-muted">
+                <span>
+                    <i class="bi bi-speedometer2 me-1 text-success"></i>
+                    Avg Score:
+                    <strong class="text-dark">{{ $performance && $performance['average_score'] !== null ? $performance['average_score'] . '%' : '—' }}</strong>
+                </span>
+                <span>
+                    <i class="bi bi-calendar-check me-1 text-info"></i>
+                    Attendance:
+                    <strong class="text-dark">{{ $performance && $performance['average_attendance'] !== null ? $performance['average_attendance'] . '%' : '—' }}</strong>
+                </span>
+                <span>
+                    <i class="bi bi-exclamation-triangle me-1 text-danger"></i>
+                    At Risk:
+                    <strong class="text-dark">{{ $performance ? $performance['at_risk'] : 0 }}</strong>
+                </span>
+                <a href="{{ route('teacher.courses.performance', $course->id) }}" class="btn btn-sm btn-outline-primary ms-auto">
+                    <i class="bi bi-graph-up-arrow me-1"></i>Performance
+                </a>
+            </div>
+        </div>
     </div>
+    </a>
+    @endforeach
+</div>
 </div>
 </div>
 @elseif(isset($courses))

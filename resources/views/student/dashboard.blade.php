@@ -180,9 +180,12 @@
                                             </div>
                                         </div>
                                         @endif
-                                        <div>
+                                        <div class="d-flex gap-2 flex-wrap">
                                             <a href="{{ route('courses.show', $enrollment->course->id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
                                                 {{ $enrollment->course->hasEnded() ? 'View' : 'Continue' }} <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                            <a href="{{ route('student.courses.performance', $enrollment->course->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                <i class="bi bi-graph-up-arrow me-1"></i>Performance
                                             </a>
                                         </div>
                                     </div>
@@ -276,6 +279,50 @@
                 </div>
             </div>
         </div>
+
+        @if(isset($performanceInsights) && $performanceInsights->count() > 0)
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3 px-4" style="border-radius: 15px 15px 0 0;">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-graph-up text-success me-2"></i>Performance Snapshot
+                </h5>
+                <small class="text-muted">Latest metrics</small>
+            </div>
+            <div class="list-group list-group-flush">
+                @foreach($performanceInsights->take(3) as $insight)
+                @php
+                $course = $insight['course'];
+                $stateColors = [
+                'excellent' => 'success',
+                'on-track' => 'primary',
+                'warning' => 'warning',
+                'risk' => 'danger',
+                ];
+                $badgeClass = $stateColors[$insight['score']['state']] ?? 'secondary';
+                @endphp
+                <div class="list-group-item border-0 px-4 py-3">
+                    <div class="d-flex align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-semibold">{{ Str::limit($course->title, 32) }}</h6>
+                            <small class="text-muted d-block">
+                                Attendance {{ $insight['attendance']['rate'] !== null ? $insight['attendance']['rate'] . '%' : '—' }} · Assignments {{ $insight['assignments']['completion_rate'] !== null ? $insight['assignments']['completion_rate'] . '%' : '—' }}
+                            </small>
+                        </div>
+                        <div class="text-end ms-3">
+                            <span class="badge bg-{{ $badgeClass }} mb-1">{{ $insight['score']['label'] }}</span>
+                            <div class="fw-bold">{{ $insight['score']['overall'] }}%</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 d-flex justify-content-end">
+                        <a href="{{ route('student.courses.performance', $course->id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
         <!-- Notices & Announcements Section -->
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">

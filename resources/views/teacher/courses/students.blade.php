@@ -17,8 +17,6 @@
             @php
             $typeColors = [
             'online' => 'bg-info',
-            'offline' => 'bg-warning text-dark',
-            'hybrid' => 'bg-purple text-white',
             ];
             $badgeClass = $typeColors[$course->class_type] ?? 'bg-secondary';
             @endphp
@@ -89,9 +87,9 @@
                             <a href="mailto:{{ $student->email }}" class="btn btn-outline-primary" title="Send Email">
                                 <i class="bi bi-envelope"></i>
                             </a>
-                            <button class="btn btn-outline-secondary" title="View Profile" disabled>
-                                <i class="bi bi-person"></i>
-                            </button>
+                            <a href="{{ route('teacher.students.performance', ['courseId' => $course->id, 'studentId' => $student->id]) }}" class="btn btn-outline-success" title="View Performance">
+                                <i class="bi bi-graph-up"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>

@@ -33,8 +33,6 @@ class Course extends Model
      * Class type constants
      */
     const CLASS_TYPE_ONLINE = 'online';
-    const CLASS_TYPE_OFFLINE = 'offline';
-    const CLASS_TYPE_HYBRID = 'hybrid';
 
     /**
      * Get available class types
@@ -43,8 +41,6 @@ class Course extends Model
     {
         return [
             self::CLASS_TYPE_ONLINE => 'Online',
-            self::CLASS_TYPE_OFFLINE => 'Offline',
-            self::CLASS_TYPE_HYBRID => 'Both (Hybrid)',
         ];
     }
 
@@ -53,7 +49,7 @@ class Course extends Model
      */
     public function getClassTypeLabel(): string
     {
-        return self::getClassTypes()[$this->class_type] ?? 'Unknown';
+        return self::getClassTypes()[$this->class_type] ?? 'Online';
     }
 
     /**
@@ -64,21 +60,7 @@ class Course extends Model
         return $this->class_type === self::CLASS_TYPE_ONLINE;
     }
 
-    /**
-     * Check if course is offline
-     */
-    public function isOffline(): bool
-    {
-        return $this->class_type === self::CLASS_TYPE_OFFLINE;
-    }
-
-    /**
-     * Check if course is hybrid (both online and offline)
-     */
-    public function isHybrid(): bool
-    {
-        return $this->class_type === self::CLASS_TYPE_HYBRID;
-    }
+    // Offline/hybrid class types have been removed, so no additional helpers are needed
 
     /**
      * Get enrolled students for this course

@@ -163,6 +163,11 @@
                 <button class="btn btn-secondary btn-lg w-100" disabled>
                     <i class="bi bi-check2-circle me-2"></i>Already Enrolled
                 </button>
+                @if(Auth::user()->role === 'student')
+                <a href="{{ route('student.courses.performance', $course->id) }}" class="btn btn-outline-primary btn-lg w-100 mt-3">
+                    <i class="bi bi-graph-up-arrow me-2"></i>View My Performance
+                </a>
+                @endif
                 @elseif(!$canEnroll)
                 <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
