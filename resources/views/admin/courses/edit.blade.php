@@ -156,26 +156,26 @@
 
                                 <!-- Online Schedule (shown when online or hybrid is selected) -->
                                 @php
-                                    $onlineScheduleParts = [];
-                                    $onlineDays = [];
-                                    $onlineTime = '';
-                                    if($course->online_schedule) {
-                                        preg_match('/^(.*?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i', $course->online_schedule, $matches);
-                                        if(count($matches) >= 3) {
-                                            $onlineDays = array_map('trim', explode('/', str_replace(['&', ','], '/', $matches[1])));
-                                            $onlineTime = date('H:i', strtotime($matches[2]));
-                                        }
-                                    }
-                                    $offlineScheduleParts = [];
-                                    $offlineDays = [];
-                                    $offlineTime = '';
-                                    if($course->offline_schedule) {
-                                        preg_match('/^(.*?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i', $course->offline_schedule, $matches);
-                                        if(count($matches) >= 3) {
-                                            $offlineDays = array_map('trim', explode('/', str_replace(['&', ','], '/', $matches[1])));
-                                            $offlineTime = date('H:i', strtotime($matches[2]));
-                                        }
-                                    }
+                                $onlineScheduleParts = [];
+                                $onlineDays = [];
+                                $onlineTime = '';
+                                if($course->online_schedule) {
+                                preg_match('/^(.*?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i', $course->online_schedule, $matches);
+                                if(count($matches) >= 3) {
+                                $onlineDays = array_map('trim', explode('/', str_replace(['&', ','], '/', $matches[1])));
+                                $onlineTime = date('H:i', strtotime($matches[2]));
+                                }
+                                }
+                                $offlineScheduleParts = [];
+                                $offlineDays = [];
+                                $offlineTime = '';
+                                if($course->offline_schedule) {
+                                preg_match('/^(.*?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i', $course->offline_schedule, $matches);
+                                if(count($matches) >= 3) {
+                                $offlineDays = array_map('trim', explode('/', str_replace(['&', ','], '/', $matches[1])));
+                                $offlineTime = date('H:i', strtotime($matches[2]));
+                                }
+                                }
                                 @endphp
                                 <div class="sm:col-span-6 {{ (old('class_type', $course->class_type) == 'online' || old('class_type', $course->class_type) == 'hybrid') ? '' : 'hidden' }}" id="online-schedule-section">
                                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">

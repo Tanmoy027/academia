@@ -32,6 +32,9 @@ class User extends Authenticatable
         'address',
         'city',
         'country',
+        'stripe_connect_id',
+        'stripe_account_status',
+        'base_salary',
     ];
 
     /**
@@ -56,7 +59,24 @@ class User extends Authenticatable
             'password' => 'hashed',
             'social_links' => 'array',
             'experience_years' => 'integer',
+            'base_salary' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Get the salary payments for this teacher
+     */
+    public function salaryPayments()
+    {
+        return $this->hasMany(\App\Models\TeacherSalary::class, 'teacher_id');
+    }
+
+    /**
+     * Check if user has active Stripe Connect account
+     */
+    public function hasActiveStripeAccount(): bool
+    {
+        return $this->stripe_account_status === 'active' && !empty($this->stripe_connect_id);
     }
 
     /**
