@@ -8,6 +8,11 @@ use App\Models\User;
 use App\Models\Attendance;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\Quiz;
+use App\Models\Question;
+use App\Models\QuestionOption;
+use App\Models\StudentQuizAttempt;
+use App\Models\StudentResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -600,4 +605,491 @@ class TeacherController extends Controller
             ->back()
             ->with('error', 'No attachment to delete.');
     }
+
+    // ======================== QUIZ METHODS ========================
+
+    /**
+     * Display all quizzes for a course
+     */
+    public function courseQuizzes($courseId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quizzes = Quiz::where('course_id', $courseId)
+            ->with('questions', 'studentAttempts')
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        return view('teacher.quizzes.index', compact('course', 'quizzes'));
+    }
+
+    /**
+     * Show create quiz form
+     */
+    public function createQuiz($courseId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        return view('teacher.quizzes.create', compact('course'));
+    }
+
+    /**
+     * Store a newly created quiz
+     */
+    public function storeQuiz(Request $request, $courseId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'description' => 'nullable|string',
+            'total_marks' => 'required|integer|min:1|max:1000',
+            'duration_minutes' => 'required|integer|min:1|max:480',
+            'start_time' => 'required|date|after_or_equal:now',
+            'end_time' => 'required|date|after:start_time',
+            'show_correct_answers' => 'nullable|boolean',
+            'shuffle_questions' => 'nullable|boolean',
+        ]);
+
+        $validated['course_id'] = $courseId;
+        $validated['teacher_id'] = $teacher->id;
+        $validated['is_published'] = false;
+        $validated['show_correct_answers'] = $request->has('show_correct_answers');
+        $validated['shuffle_questions'] = $request->has('shuffle_questions');
+
+        $quiz = Quiz::create($validated);
+
+        return redirect()
+            ->route('teacher.quiz.show', ['courseId' => $courseId, 'quizId' => $quiz->id])
+            ->with('success', 'Quiz created successfully! Now add questions to your quiz.');
+    }
+
+    /**
+     * Show quiz details with questions
+     */
+    public function showQuiz($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->with('questions.options')
+            ->firstOrFail();
+
+        $questions = $quiz->questions()->orderBy('order')->get();
+
+        return view('teacher.quizzes.show', compact('course', 'quiz', 'questions'));
+    }
+
+    /**
+     * Add a question to quiz (display form)
+     */
+    public function createQuestion($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        return view('teacher.quizzes.add-question', compact('course', 'quiz'));
+    }
+
+    /**
+     * Store a question
+     */
+    public function storeQuestion(Request $request, $courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'question_text' => 'required|string',
+            'question_type' => 'required|in:mcq,short_answer',
+            'marks' => 'required|integer|min:1|max:100',
+            'options' => 'required_if:question_type,mcq|array|min:2',
+            'options.*' => 'required_if:question_type,mcq|string|max:500',
+            'correct_option' => 'required_if:question_type,mcq|integer',
+        ]);
+
+        $order = $quiz->questions()->max('order') + 1;
+
+        $question = Question::create([
+            'quiz_id' => $quizId,
+            'question_text' => $validated['question_text'],
+            'question_type' => $validated['question_type'],
+            'marks' => $validated['marks'],
+            'order' => $order,
+        ]);
+
+        // Add options for MCQ
+        if ($validated['question_type'] === 'mcq' && isset($validated['options'])) {
+            foreach ($validated['options'] as $index => $optionText) {
+                QuestionOption::create([
+                    'question_id' => $question->id,
+                    'option_text' => $optionText,
+                    'is_correct' => $index == $validated['correct_option'],
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('teacher.quiz.show', ['courseId' => $courseId, 'quizId' => $quizId])
+            ->with('success', 'Question added successfully!');
+    }
+
+    /**
+     * Edit a question
+     */
+    public function editQuestion($courseId, $quizId, $questionId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $question = Question::where('id', $questionId)
+            ->where('quiz_id', $quizId)
+            ->with('options')
+            ->firstOrFail();
+
+        return view('teacher.quizzes.edit-question', compact('course', 'quiz', 'question'));
+    }
+
+    /**
+     * Update a question
+     */
+    public function updateQuestion(Request $request, $courseId, $quizId, $questionId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $question = Question::where('id', $questionId)
+            ->where('quiz_id', $quizId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'question_text' => 'required|string',
+            'marks' => 'required|integer|min:1|max:100',
+            'options' => 'array|min:2',
+            'options.*' => 'string|max:500',
+            'correct_option' => 'integer',
+        ]);
+
+        $question->update([
+            'question_text' => $validated['question_text'],
+            'marks' => $validated['marks'],
+        ]);
+
+        // Update options for MCQ
+        if ($question->isMCQ() && isset($validated['options'])) {
+            $question->options()->delete();
+
+            foreach ($validated['options'] as $index => $optionText) {
+                QuestionOption::create([
+                    'question_id' => $question->id,
+                    'option_text' => $optionText,
+                    'is_correct' => $index == $validated['correct_option'],
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('teacher.quiz.show', ['courseId' => $courseId, 'quizId' => $quizId])
+            ->with('success', 'Question updated successfully!');
+    }
+
+    /**
+     * Delete a question
+     */
+    public function deleteQuestion($courseId, $quizId, $questionId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $question = Question::where('id', $questionId)
+            ->where('quiz_id', $quizId)
+            ->firstOrFail();
+
+        $question->delete();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Question deleted successfully!');
+    }
+
+    /**
+     * Edit quiz settings
+     */
+    public function editQuiz($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        return view('teacher.quizzes.edit', compact('course', 'quiz'));
+    }
+
+    /**
+     * Update quiz settings
+     */
+    public function updateQuiz(Request $request, $courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:500',
+            'description' => 'nullable|string',
+            'total_marks' => 'required|integer|min:1|max:1000',
+            'duration_minutes' => 'required|integer|min:1|max:480',
+            'start_time' => 'required|date|after_or_equal:now',
+            'end_time' => 'required|date|after:start_time',
+            'show_correct_answers' => 'nullable|boolean',
+            'shuffle_questions' => 'nullable|boolean',
+        ]);
+
+        $validated['show_correct_answers'] = $request->has('show_correct_answers');
+        $validated['shuffle_questions'] = $request->has('shuffle_questions');
+
+        $quiz->update($validated);
+
+        return redirect()
+            ->route('teacher.quiz.show', ['courseId' => $courseId, 'quizId' => $quizId])
+            ->with('success', 'Quiz updated successfully!');
+    }
+
+    /**
+     * Publish a quiz
+     */
+    public function publishQuiz($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        // Validate quiz has at least one question
+        if ($quiz->questions()->count() === 0) {
+            return redirect()
+                ->back()
+                ->with('error', 'Quiz must have at least one question before publishing!');
+        }
+
+        $quiz->update(['is_published' => true]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Quiz published successfully!');
+    }
+
+    /**
+     * Unpublish a quiz
+     */
+    public function unpublishQuiz($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $quiz->update(['is_published' => false]);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Quiz unpublished successfully!');
+    }
+
+    /**
+     * Delete a quiz
+     */
+    public function deleteQuiz($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $quiz->delete();
+
+        return redirect()
+            ->route('teacher.course.quizzes', ['courseId' => $courseId])
+            ->with('success', 'Quiz deleted successfully!');
+    }
+
+    /**
+     * View quiz results
+     */
+    public function quizResults($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->with('studentAttempts.student')
+            ->firstOrFail();
+
+        $attempts = $quiz->studentAttempts()
+            ->with('student')
+            ->orderBy('submitted_at', 'desc')
+            ->get();
+
+        $statistics = $quiz->getStatistics();
+
+        return view('teacher.quizzes.results', compact('course', 'quiz', 'attempts', 'statistics'));
+    }
+
+    /**
+     * View individual student's quiz attempt result
+     */
+    public function viewStudentQuizAttempt($courseId, $quizId, $attemptId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $attempt = StudentQuizAttempt::where('id', $attemptId)
+            ->where('quiz_id', $quizId)
+            ->with('student', 'responses.question.options', 'responses.selectedOption')
+            ->firstOrFail();
+
+        $responses = $attempt->responses()
+            ->with('question.options', 'selectedOption')
+            ->get();
+
+        return view('teacher.quizzes.student-attempt', compact('course', 'quiz', 'attempt', 'responses'));
+    }
+
+    /**
+     * Grade short answer response
+     */
+    public function gradeResponse(Request $request, $courseId, $quizId, $attemptId, $responseId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->firstOrFail();
+
+        $attempt = StudentQuizAttempt::where('id', $attemptId)
+            ->where('quiz_id', $quizId)
+            ->firstOrFail();
+
+        $response = StudentResponse::where('id', $responseId)
+            ->where('student_quiz_attempt_id', $attemptId)
+            ->with('question')
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'marks_awarded' => 'required|numeric|min:0|max:' . $response->question->marks,
+            'teacher_feedback' => 'nullable|string',
+        ]);
+
+        $response->update($validated);
+
+        // Recalculate total marks for attempt
+        $attempt->calculateMarks();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Response graded successfully!');
+    }
+
+    /**
+     * View class performance
+     */
+    public function classPerformance($courseId, $quizId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $quiz = Quiz::where('id', $quizId)
+            ->where('course_id', $courseId)
+            ->with('studentAttempts.student')
+            ->firstOrFail();
+
+        $attempts = $quiz->studentAttempts()
+            ->with('student')
+            ->where('is_submitted', true)
+            ->orderBy('percentage', 'desc')
+            ->get();
+
+        $statistics = $quiz->getStatistics();
+
+        return view('teacher.quizzes.performance', compact('course', 'quiz', 'attempts', 'statistics'));
+    }
 }
+

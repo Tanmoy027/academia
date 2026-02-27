@@ -148,6 +148,15 @@
         </a>
     </div>
     <div class="col-md-3 mb-3">
+        <a href="{{ route('teacher.course.quizzes', $course->id) }}" class="card text-decoration-none h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-question-circle text-danger" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-2 mb-0 text-dark">Quizzes</h5>
+                <p class="text-muted small mb-0">Create and manage quizzes</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
         <a href="{{ route('teacher.courses.performance', $course->id) }}" class="card text-decoration-none h-100">
             <div class="card-body text-center">
                 <i class="bi bi-graph-up-arrow text-primary" style="font-size: 2.5rem;"></i>

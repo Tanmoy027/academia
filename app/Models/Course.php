@@ -99,6 +99,14 @@ class Course extends Model
     }
 
     /**
+     * Get all quizzes for this course
+     */
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
+    }
+
+    /**
      * Check if enrollment is allowed (course hasn't started yet)
      */
     public function canEnroll(): bool

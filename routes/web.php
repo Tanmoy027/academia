@@ -9,6 +9,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherDirectoryController;
 use App\Http\Controllers\TeacherSalaryController;
 use Illuminate\Support\Facades\Route;
@@ -124,12 +125,45 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::put('/courses/{courseId}/assignments/{assignmentId}', [TeacherController::class, 'updateAssignment'])->name('teacher.assignments.update');
     Route::delete('/courses/{courseId}/assignments/{assignmentId}', [TeacherController::class, 'deleteAssignment'])->name('teacher.assignments.delete');
     Route::delete('/courses/{courseId}/assignments/{assignmentId}/attachment', [TeacherController::class, 'deleteAssignmentAttachment'])->name('teacher.assignments.attachment.delete');
+
+    // Quiz Management
+    Route::get('/courses/{courseId}/quizzes', [TeacherController::class, 'courseQuizzes'])->name('teacher.course.quizzes');
+    Route::get('/courses/{courseId}/quizzes/create', [TeacherController::class, 'createQuiz'])->name('teacher.quiz.create');
+    Route::post('/courses/{courseId}/quizzes', [TeacherController::class, 'storeQuiz'])->name('teacher.quiz.store');
+    Route::get('/courses/{courseId}/quizzes/{quizId}', [TeacherController::class, 'showQuiz'])->name('teacher.quiz.show');
+    Route::get('/courses/{courseId}/quizzes/{quizId}/edit', [TeacherController::class, 'editQuiz'])->name('teacher.quiz.edit');
+    Route::put('/courses/{courseId}/quizzes/{quizId}', [TeacherController::class, 'updateQuiz'])->name('teacher.quiz.update');
+    Route::delete('/courses/{courseId}/quizzes/{quizId}', [TeacherController::class, 'deleteQuiz'])->name('teacher.quiz.delete');
+    Route::post('/courses/{courseId}/quizzes/{quizId}/publish', [TeacherController::class, 'publishQuiz'])->name('teacher.quiz.publish');
+    Route::post('/courses/{courseId}/quizzes/{quizId}/unpublish', [TeacherController::class, 'unpublishQuiz'])->name('teacher.quiz.unpublish');
+    
+    // Quiz Questions Management
+    Route::get('/courses/{courseId}/quizzes/{quizId}/questions/create', [TeacherController::class, 'createQuestion'])->name('teacher.quiz.questions.create');
+    Route::post('/courses/{courseId}/quizzes/{quizId}/questions', [TeacherController::class, 'storeQuestion'])->name('teacher.quiz.questions.store');
+    Route::get('/courses/{courseId}/quizzes/{quizId}/questions/{questionId}/edit', [TeacherController::class, 'editQuestion'])->name('teacher.quiz.questions.edit');
+    Route::put('/courses/{courseId}/quizzes/{quizId}/questions/{questionId}', [TeacherController::class, 'updateQuestion'])->name('teacher.quiz.questions.update');
+    Route::delete('/courses/{courseId}/quizzes/{quizId}/questions/{questionId}', [TeacherController::class, 'deleteQuestion'])->name('teacher.quiz.questions.delete');
+    
+    // Quiz Results Management
+    Route::get('/courses/{courseId}/quizzes/{quizId}/results', [TeacherController::class, 'quizResults'])->name('teacher.quiz.results');
+    Route::get('/courses/{courseId}/quizzes/{quizId}/performance', [TeacherController::class, 'classPerformance'])->name('teacher.quiz.performance');
+    Route::get('/courses/{courseId}/quizzes/{quizId}/attempts/{attemptId}', [TeacherController::class, 'viewStudentQuizAttempt'])->name('teacher.quiz.attempt.view');
+    Route::post('/courses/{courseId}/quizzes/{quizId}/attempts/{attemptId}/responses/{responseId}/grade', [TeacherController::class, 'gradeResponse'])->name('teacher.quiz.response.grade');
 });
 
 Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
     Route::get('/notices', [NoticeController::class, 'studentNotices'])->name('student.notices');
     Route::get('/courses/{courseId}/performance', [PerformanceController::class, 'studentCourse'])->name('student.courses.performance');
+    
+    // Student Quiz Routes
+    Route::get('/quizzes', [StudentController::class, 'availableQuizzes'])->name('student.quizzes.available');
+    Route::get('/quizzes/{quizId}/start', [StudentController::class, 'startQuiz'])->name('student.quiz.start');
+    Route::post('/quizzes/{quizId}/attempts/{attemptId}/save-response', [StudentController::class, 'saveResponse'])->name('student.quiz.save-response');
+    Route::post('/quizzes/{quizId}/attempts/{attemptId}/submit', [StudentController::class, 'submitQuiz'])->name('student.quiz.submit');
+    Route::get('/quizzes/{quizId}/result', [StudentController::class, 'viewQuizResult'])->name('student.quiz.result');
+    Route::get('/quizzes/my-results', [StudentController::class, 'myQuizResults'])->name('student.quizzes.my-results');
+    Route::get('/quizzes/attempts/{attemptId}/remaining-time', [StudentController::class, 'getRemainingTime'])->name('student.quiz.remaining-time');
 });
 
 Route::middleware('auth')->group(function () {

@@ -105,6 +105,22 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
+    /**
+     * Get all quizzes created by this teacher
+     */
+    public function createdQuizzes()
+    {
+        return $this->hasMany(Quiz::class, 'teacher_id');
+    }
+
+    /**
+     * Get all quiz attempts for this student
+     */
+    public function quizAttempts()
+    {
+        return $this->hasMany(StudentQuizAttempt::class, 'student_id');
+    }
+
     public function getProfilePictureUrlAttribute(): ?string
     {
         if (!$this->profile_picture) {
