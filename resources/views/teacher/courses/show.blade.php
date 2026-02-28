@@ -109,6 +109,79 @@
     </div>
 </div>
 
+<!-- Live Session Controls -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-broadcast-pin"></i> Live Session Link</span>
+        @if($course->hasActiveLiveSession())
+        <span class="badge bg-success">Active</span>
+        @else
+        <span class="badge bg-light text-primary">Idle</span>
+        @endif
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <h6 class="fw-semibold">Shared with students</h6>
+                @if($course->hasActiveLiveSession())
+                <p class="mb-2">
+                    <a href="{{ $course->live_session_link }}" target="_blank">{{ \Illuminate\Support\Str::limit($course->live_session_link, 60) }}</a>
+                </p>
+                <p class="text-muted small mb-2">
+                    Expires {{ optional($course->live_session_expires_at)->diffForHumans() ?? 'soon' }}
+                </p>
+                @if($course->live_session_message)
+                <blockquote class="border-start ps-3 text-muted small">
+                    {{ $course->live_session_message }}
+                </blockquote>
+                @endif
+                @else
+                <p class="text-muted mb-0">No live session link has been published. Students will see a join button here once you share it.</p>
+                @endif
+            </div>
+            <div class="col-lg-7">
+                <form method="POST" action="{{ route('teacher.courses.live-link.update', $course->id) }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Live session URL</label>
+                        <input type="url" name="live_session_link" class="form-control @error('live_session_link') is-invalid @enderror"
+                            placeholder="https://meet.example.com/your-room" value="{{ old('live_session_link', $course->live_session_link) }}">
+                        @error('live_session_link')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Note for students (optional)</label>
+                        <textarea name="live_session_message" rows="2" class="form-control @error('live_session_message') is-invalid @enderror"
+                            placeholder="Include joining instructions or agenda">{{ old('live_session_message', $course->live_session_message) }}</textarea>
+                        @error('live_session_message')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Link expires in</label>
+                            <select name="expires_in" class="form-select">
+                                @foreach([30, 60, 90, 120, 180, 240] as $minutes)
+                                <option value="{{ $minutes }}" {{ old('expires_in', 120) == $minutes ? 'selected' : '' }}>{{ $minutes }} minutes</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex gap-2 justify-content-end">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-send me-1"></i>Share Link
+                            </button>
+                            <button type="submit" name="clear_link" value="1" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Actions -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">

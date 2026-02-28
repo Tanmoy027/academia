@@ -81,6 +81,46 @@ class TeacherController extends Controller
     }
 
     /**
+     * Share or clear the live session link for students.
+     */
+    public function updateLiveSessionLink(Request $request, $id)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'live_session_link' => 'nullable|url|max:2048',
+            'live_session_message' => 'nullable|string|max:500',
+            'expires_in' => 'nullable|integer|min:15|max:480',
+            'clear_link' => 'nullable|boolean',
+        ]);
+
+        if ($request->boolean('clear_link')) {
+            $course->update([
+                'live_session_link' => null,
+                'live_session_message' => null,
+                'live_session_expires_at' => null,
+            ]);
+
+            return back()->with('success', 'Live session link cleared for students.');
+        }
+
+        if (empty($validated['live_session_link'])) {
+            return back()->with('error', 'Please provide a valid URL before sharing the live session link.');
+        }
+
+        $course->update([
+            'live_session_link' => $validated['live_session_link'],
+            'live_session_message' => $validated['live_session_message'] ?? null,
+            'live_session_expires_at' => Carbon::now()->addMinutes((int) ($validated['expires_in'] ?? 120)),
+        ]);
+
+        return back()->with('success', 'Live session link shared with enrolled students.');
+    }
+
+    /**
      * Display attendance records for a course
      */
     public function courseAttendance($id)
@@ -1092,4 +1132,3 @@ class TeacherController extends Controller
         return view('teacher.quizzes.performance', compact('course', 'quiz', 'attempts', 'statistics'));
     }
 }
-

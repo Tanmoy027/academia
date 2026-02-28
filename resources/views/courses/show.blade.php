@@ -36,6 +36,227 @@
 
 <div class="row g-5">
     <!-- Course Content -->
+    @if($studentAccess)
+    <div id="student-access" class="card shadow border-0 mb-4">
+        <div class="card-header bg-transparent border-bottom d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-mortarboard text-primary me-2"></i>Your Classroom Access
+                </h5>
+                <small class="text-muted">Everything you need after enrollment</small>
+            </div>
+            @if($studentAccess['enrollment']?->created_at)
+            <span class="badge bg-primary-subtle text-primary fw-semibold">
+                Enrolled {{ $studentAccess['enrollment']->created_at->diffForHumans() }}
+            </span>
+            @endif
+        </div>
+        <div class="card-body p-4">
+            @php
+            $pendingAssignments = $studentAccess['assignments']->filter(fn($assignment) => !optional($assignment->student_submission)->submitted_at);
+            @endphp
+            <div class="row g-4">
+                <div class="col-xl-5">
+                    <div class="h-100 p-4 rounded-4 position-relative overflow-hidden" style="background: linear-gradient(135deg,#5f7cff,#885ffb);">
+                        <div class="position-absolute top-0 end-0 p-3 text-white-50">
+                            <i class="bi bi-broadcast-pin" style="font-size:2.5rem;"></i>
+                        </div>
+                        <h5 class="text-white fw-bold mb-1">Live Session</h5>
+                        <p class="text-white-50 mb-3">
+                            {{ $studentAccess['next_class_text'] ?? 'Schedule to be announced.' }}
+                        </p>
+                        @if($studentAccess['live_session'])
+                        <div class="bg-white bg-opacity-20 rounded-3 p-3 mb-3 text-white">
+                            <small class="text-uppercase text-white-50">Active Link</small>
+                            <p class="mb-1 fw-semibold">Available until {{ optional($studentAccess['live_session']['expires_at'])->diffForHumans() ?? 'further notice' }}</p>
+                            @if($studentAccess['live_session']['message'])
+                            <small>{{ $studentAccess['live_session']['message'] }}</small>
+                            @endif
+                        </div>
+                        <a href="{{ $studentAccess['live_session']['link'] }}" target="_blank" class="btn btn-light text-primary fw-semibold w-100">
+                            <i class="bi bi-camera-video me-2"></i>Join Live Class
+                        </a>
+                        @else
+                        <div class="bg-white bg-opacity-20 rounded-3 p-3 text-white">
+                            <small class="text-uppercase text-white-50">Waiting for teacher</small>
+                            <p class="mb-0">Stay close! Your teacher will drop the live class link here once the session starts.</p>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-xl-7">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted small text-uppercase">Assignments</span>
+                                    <i class="bi bi-journal-text text-primary"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1">{{ $pendingAssignments->count() }}</h4>
+                                <small class="text-muted">Pending submissions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted small text-uppercase">Quizzes</span>
+                                    <i class="bi bi-question-circle text-success"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1">{{ $studentAccess['quizzes']['active']->count() }}</h4>
+                                <small class="text-muted">Active right now</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted small text-uppercase">Attendance</span>
+                                    <i class="bi bi-clipboard-check text-warning"></i>
+                                </div>
+                                <h4 class="fw-bold mb-1">{{ $studentAccess['attendance']['rate'] !== null ? $studentAccess['attendance']['rate'] . '%' : '—' }}</h4>
+                                <small class="text-muted">Overall presence</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-1">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-journal-bookmark me-2 text-primary"></i>Assignments & Deadlines</h6>
+                                <span class="badge bg-primary-subtle text-primary">{{ $studentAccess['assignments']->count() }} listed</span>
+                            </div>
+                            @forelse($studentAccess['assignments'] as $assignment)
+                            @php $submission = $assignment->student_submission; @endphp
+                            <div class="d-flex justify-content-between align-items-start py-3 border-bottom">
+                                <div>
+                                    <h6 class="mb-1">{{ Str::limit($assignment->title, 40) }}</h6>
+                                    <small class="text-muted">Due {{ optional($assignment->due_date)->format('M d, Y g:i A') ?? 'Flexible' }}</small>
+                                    @if($assignment->attachment_url)
+                                    <div>
+                                        <a href="{{ $assignment->attachment_url }}" target="_blank" class="text-decoration-none small">
+                                            <i class="bi bi-paperclip me-1"></i>Attachment
+                                        </a>
+                                    </div>
+                                    @endif
+                                </div>
+                                <div class="text-end">
+                                    @if($submission)
+                                    <span class="badge bg-{{ $submission->status_color }}">{{ $submission->status_label }}</span>
+                                    <small class="d-block text-muted">{{ optional($submission->submitted_at)->diffForHumans() }}</small>
+                                    @else
+                                    <span class="badge bg-secondary">Not Submitted</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @empty
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-book" style="font-size:2rem;"></i>
+                                <p class="mb-0">No assignments published yet.</p>
+                            </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-lightning-charge text-success me-2"></i>Active Quizzes</h6>
+                                <a href="{{ route('student.quizzes.available') }}" class="small">See all</a>
+                            </div>
+                            @forelse($studentAccess['quizzes']['active'] as $quiz)
+                            <div class="p-3 border rounded-3 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ Str::limit($quiz->title, 40) }}</h6>
+                                        <small class="text-muted">Ends {{ optional($quiz->end_time)->diffForHumans() }}</small>
+                                    </div>
+                                    <a href="{{ route('student.quiz.start', $quiz->id) }}" class="btn btn-sm btn-success">
+                                        Start
+                                    </a>
+                                </div>
+                            </div>
+                            @empty
+                            <p class="text-muted">No quizzes running right now.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-hourglass-split text-warning me-2"></i>Upcoming & Recent Results</h6>
+                            @forelse($studentAccess['quizzes']['upcoming'] as $quiz)
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div>
+                                    <span class="badge bg-warning text-dark me-2">Upcoming</span>
+                                    <strong>{{ Str::limit($quiz->title, 32) }}</strong>
+                                </div>
+                                <small class="text-muted">Starts {{ optional($quiz->start_time)->format('M d, g:i A') }}</small>
+                            </div>
+                            @empty
+                            <p class="text-muted">No upcoming quizzes announced.</p>
+                            @endforelse
+                            <hr>
+                            @forelse($studentAccess['quizzes']['completed'] as $attempt)
+                            <div class="d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <span class="badge bg-success me-2">{{ $attempt->marks_obtained ?? '—' }}/{{ $attempt->quiz->total_marks }}</span>
+                                    <strong>{{ Str::limit($attempt->quiz->title, 32) }}</strong>
+                                </div>
+                                <small class="text-muted">{{ optional($attempt->submitted_at)->diffForHumans() }}</small>
+                            </div>
+                            @empty
+                            <p class="text-muted mb-0">No quiz attempts graded yet.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-clipboard-check text-info me-2"></i>Attendance Tracker</h6>
+                        <div class="d-flex gap-2">
+                            @foreach($studentAccess['attendance']['totals'] as $label => $total)
+                            <span class="badge bg-light text-secondary text-capitalize">{{ $label }}: {{ $total }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            @forelse($studentAccess['attendance']['recent'] as $attendance)
+                            <div class="d-flex justify-content-between align-items-center border rounded-3 p-2 mb-2">
+                                <div>
+                                    <strong>{{ $attendance->date->format('M d, Y') }}</strong>
+                                    <small class="d-block text-muted text-capitalize">{{ $attendance->type_label }}</small>
+                                </div>
+                                <span class="badge bg-{{ $attendance->status_color }} text-uppercase">{{ $attendance->status_label }}</span>
+                            </div>
+                            @empty
+                            <p class="text-muted">Your attendance will appear here once classes begin.</p>
+                            @endforelse
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 bg-light rounded-4 h-100 d-flex flex-column">
+                                <p class="text-muted small mb-2">Track your overall performance and grades in one place.</p>
+                                <h4 class="fw-bold">Performance Dashboard</h4>
+                                <p class="text-muted flex-grow-1">View attendance trends, assignment completion, quiz scores and personalized tips.</p>
+                                <a href="{{ route('student.courses.performance', $course->id) }}" class="btn btn-outline-primary rounded-pill align-self-start">
+                                    <i class="bi bi-graph-up-arrow me-2"></i>Open Performance View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Course Details Card -->
     <div class="col-lg-8">
         <div class="card shadow-lg border-0 mb-4">
             @if($course->image_url)
@@ -163,6 +384,11 @@
                 <button class="btn btn-secondary btn-lg w-100" disabled>
                     <i class="bi bi-check2-circle me-2"></i>Already Enrolled
                 </button>
+                @if($studentAccess)
+                <a href="#student-access" class="btn btn-primary btn-lg w-100 mt-3">
+                    <i class="bi bi-door-open me-2"></i>Open Classroom
+                </a>
+                @endif
                 @if(Auth::user()->role === 'student')
                 <a href="{{ route('student.courses.performance', $course->id) }}" class="btn btn-outline-primary btn-lg w-100 mt-3">
                     <i class="bi bi-graph-up-arrow me-2"></i>View My Performance

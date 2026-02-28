@@ -21,12 +21,16 @@ class Course extends Model
         'class_type',
         'online_schedule',
         'offline_schedule',
+        'live_session_link',
+        'live_session_message',
+        'live_session_expires_at',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'is_active' => 'boolean',
+        'live_session_expires_at' => 'datetime',
     ];
 
     /**
@@ -258,5 +262,37 @@ class Course extends Model
 
         // Otherwise return the stored value
         return $value;
+    }
+
+    /**
+     * Determine if there is still a valid live session link.
+     */
+    public function hasActiveLiveSession(): bool
+    {
+        if (!$this->live_session_link) {
+            return false;
+        }
+
+        if (!$this->live_session_expires_at) {
+            return true;
+        }
+
+        return Carbon::now()->lte($this->live_session_expires_at);
+    }
+
+    /**
+     * Return the live session metadata for consumers.
+     */
+    public function getLiveSessionSnapshot(): ?array
+    {
+        if (!$this->hasActiveLiveSession()) {
+            return null;
+        }
+
+        return [
+            'link' => $this->live_session_link,
+            'message' => $this->live_session_message,
+            'expires_at' => $this->live_session_expires_at,
+        ];
     }
 }
