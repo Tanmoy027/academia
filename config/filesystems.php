@@ -121,5 +121,6 @@ return [
     ],
 
     'user_profile_disk' => env('USER_PROFILE_DISK', 'courseprofile'),
+    'course_material_disk' => env('COURSE_MATERIAL_DISK', 'courseprofile'),
 
 ];

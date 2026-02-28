@@ -218,6 +218,38 @@
             <div class="card border-0 shadow-sm mt-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-0"><i class="bi bi-folder text-success me-2"></i>Course Materials</h6>
+                            <small class="text-muted">Latest uploads from your teacher</small>
+                        </div>
+                        <span class="badge bg-success-subtle text-success fw-semibold">
+                            {{ $studentAccess['materials']->count() }} {{ Str::plural('file', $studentAccess['materials']->count()) }}
+                        </span>
+                    </div>
+                    @forelse($studentAccess['materials'] as $material)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <strong>{{ Str::limit($material->title, 60) }}</strong>
+                            <div class="text-muted small">
+                                {{ $material->size_for_humans }} • Shared {{ optional($material->created_at)->diffForHumans() }}
+                            </div>
+                            @if($material->description)
+                            <div class="text-muted small">{{ Str::limit($material->description, 120) }}</div>
+                            @endif
+                        </div>
+                        <a href="{{ $material->file_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Open
+                        </a>
+                    </div>
+                    @empty
+                    <p class="text-muted mb-0">Your teacher hasn't shared any files yet. New materials will appear here automatically.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0"><i class="bi bi-clipboard-check text-info me-2"></i>Attendance Tracker</h6>
                         <div class="d-flex gap-2">
                             @foreach($studentAccess['attendance']['totals'] as $label => $total)

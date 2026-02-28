@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Attendance;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\CourseMaterial;
 use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\QuestionOption;
@@ -16,6 +17,7 @@ use App\Models\StudentResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Services\UserProfilePhotoService;
 use Carbon\Carbon;
 
@@ -45,7 +47,11 @@ class TeacherController extends Controller
         $teacher = Auth::user();
         $course = Course::where('id', $id)
             ->where('teacher_id', $teacher->id)
-            ->with('students')
+            ->with([
+                'students',
+                'materials' => fn($query) => $query->latest()->limit(1),
+            ])
+            ->withCount('materials')
             ->firstOrFail();
 
         return view('teacher.courses.show', compact('course'));
@@ -75,9 +81,76 @@ class TeacherController extends Controller
         $teacher = Auth::user();
         $course = Course::where('id', $id)
             ->where('teacher_id', $teacher->id)
+            ->with(['materials' => fn($query) => $query->latest()])
             ->firstOrFail();
 
-        return view('teacher.courses.materials', compact('course'));
+        $materials = $course->materials;
+        $stats = $this->materialStats($materials);
+
+        return view('teacher.courses.materials', [
+            'course' => $course,
+            'materials' => $materials,
+            'stats' => $stats,
+        ]);
+    }
+
+    public function storeCourseMaterial(Request $request, $id)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'file' => 'required|file|max:51200|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,csv,zip,rar,txt,rtf,mp4,mov,wmv,avi,mkv,webm,mp3,wav,jpg,jpeg,png',
+        ]);
+
+        $file = $request->file('file');
+        $disk = $this->courseMaterialDisk();
+        $directory = 'courses/' . $course->id . '/materials';
+        $extension = strtolower($file->getClientOriginalExtension());
+        $filename = Str::uuid()->toString() . ($extension ? '.' . $extension : '');
+
+        $path = Storage::disk($disk)->putFileAs($directory, $file, $filename, [
+            'visibility' => 'public',
+        ]);
+
+        $material = CourseMaterial::create([
+            'course_id' => $course->id,
+            'uploaded_by' => $teacher->id,
+            'title' => $validated['title'] ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'description' => $validated['description'] ?? null,
+            'file_path' => $path,
+            'file_url' => Storage::disk($disk)->url($path),
+            'file_type' => $file->getClientMimeType(),
+            'file_size' => $file->getSize(),
+        ]);
+
+        return redirect()
+            ->route('teacher.courses.materials', $course->id)
+            ->with('success', 'Material "' . $material->title . '" uploaded successfully.');
+    }
+
+    public function deleteCourseMaterial($courseId, $materialId)
+    {
+        $teacher = Auth::user();
+        $course = Course::where('id', $courseId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
+
+        $material = CourseMaterial::where('course_id', $course->id)
+            ->where('id', $materialId)
+            ->firstOrFail();
+
+        Storage::disk($this->courseMaterialDisk())->delete($material->file_path);
+        $title = $material->title;
+        $material->delete();
+
+        return redirect()
+            ->route('teacher.courses.materials', $course->id)
+            ->with('success', 'Material "' . $title . '" deleted successfully.');
     }
 
     /**
@@ -1130,5 +1203,74 @@ class TeacherController extends Controller
         $statistics = $quiz->getStatistics();
 
         return view('teacher.quizzes.performance', compact('course', 'quiz', 'attempts', 'statistics'));
+    }
+
+    private function materialStats($materials): array
+    {
+        $totals = [
+            'documents' => 0,
+            'videos' => 0,
+            'others' => 0,
+            'count' => $materials->count(),
+            'size_bytes' => 0,
+        ];
+
+        foreach ($materials as $material) {
+            $category = $this->detectMaterialCategory($material);
+            $totals[$category]++;
+            $totals['size_bytes'] += $material->file_size ?? 0;
+        }
+
+        $totals['size_human'] = $this->formatBytes((int) $totals['size_bytes']);
+
+        return $totals;
+    }
+
+    private function detectMaterialCategory(CourseMaterial $material): string
+    {
+        $mime = strtolower($material->file_type ?? '');
+        $extension = $material->file_extension ?? '';
+
+        $videoExtensions = ['mp4', 'mov', 'avi', 'wmv', 'mkv', 'webm'];
+        $documentExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'txt', 'rtf', 'zip', 'rar', 'jpg', 'jpeg', 'png'];
+
+        if (str_contains($mime, 'video') || in_array($extension, $videoExtensions, true)) {
+            return 'videos';
+        }
+
+        if (
+            str_contains($mime, 'pdf') ||
+            str_contains($mime, 'word') ||
+            str_contains($mime, 'presentation') ||
+            str_contains($mime, 'spreadsheet') ||
+            str_contains($mime, 'text') ||
+            in_array($extension, $documentExtensions, true)
+        ) {
+            return 'documents';
+        }
+
+        return 'others';
+    }
+
+    private function courseMaterialDisk(): string
+    {
+        return config('filesystems.course_material_disk', 'courseprofile');
+    }
+
+    private function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1073741824) {
+            return round($bytes / 1073741824, 2) . ' GB';
+        }
+
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 2) . ' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+
+        return $bytes . ' B';
     }
 }

@@ -98,6 +98,8 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::get('/courses/{id}', [TeacherController::class, 'showCourse'])->name('teacher.courses.show');
     Route::get('/courses/{id}/students', [TeacherController::class, 'courseStudents'])->name('teacher.courses.students');
     Route::get('/courses/{id}/materials', [TeacherController::class, 'courseMaterials'])->name('teacher.courses.materials');
+    Route::post('/courses/{id}/materials', [TeacherController::class, 'storeCourseMaterial'])->name('teacher.courses.materials.store');
+    Route::delete('/courses/{courseId}/materials/{materialId}', [TeacherController::class, 'deleteCourseMaterial'])->name('teacher.courses.materials.destroy');
     Route::post('/courses/{id}/live-link', [TeacherController::class, 'updateLiveSessionLink'])->name('teacher.courses.live-link.update');
     Route::get('/courses/{id}/performance', [PerformanceController::class, 'teacherCourse'])->name('teacher.courses.performance');
     Route::get('/courses/{courseId}/students/{studentId}/performance', [PerformanceController::class, 'teacherStudent'])->name('teacher.students.performance');

@@ -20,17 +20,17 @@
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
     @endif
 
     <!-- Quiz Stats Cards -->
@@ -63,91 +63,108 @@
 
     <!-- Quizzes List -->
     <div class="card">
-        <div class="card-header bg-white">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 class="mb-0">All Quizzes</h5>
+            <span class="text-muted small">Quizzes stay hidden from students until you publish them.</span>
         </div>
         <div class="card-body">
             @if($quizzes->isEmpty())
-                <div class="text-center py-5">
-                    <i class="bi bi-clipboard-x display-1 text-muted"></i>
-                    <p class="text-muted mt-3">No quizzes created yet. Create your first quiz to get started!</p>
-                    <a href="{{ route('teacher.quiz.create', $course->id) }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-2"></i>Create Your First Quiz
-                    </a>
-                </div>
+            <div class="text-center py-5">
+                <i class="bi bi-clipboard-x display-1 text-muted"></i>
+                <p class="text-muted mt-3">No quizzes created yet. Create your first quiz to get started!</p>
+                <a href="{{ route('teacher.quiz.create', $course->id) }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Create Your First Quiz
+                </a>
+            </div>
             @else
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Duration</th>
-                                <th>Total Marks</th>
-                                <th>Questions</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                                <th>Status</th>
-                                <th>Attempts</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($quizzes as $quiz)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('teacher.quiz.show', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="text-decoration-none fw-semibold">
-                                            {{ $quiz->title }}
-                                        </a>
-                                        @if(!$quiz->is_published)
-                                            <span class="badge bg-secondary ms-2">Draft</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $quiz->duration_minutes }} mins</td>
-                                    <td>{{ $quiz->total_marks }}</td>
-                                    <td>{{ $quiz->questions->count() }}</td>
-                                    <td>{{ $quiz->start_time->format('M d, Y H:i') }}</td>
-                                    <td>{{ $quiz->end_time->format('M d, Y H:i') }}</td>
-                                    <td>
-                                        @if($quiz->hasEnded())
-                                            <span class="badge bg-secondary">Ended</span>
-                                        @elseif($quiz->isActive())
-                                            <span class="badge bg-success">Active</span>
-                                        @elseif($quiz->hasStarted())
-                                            <span class="badge bg-warning">Started</span>
-                                        @else
-                                            <span class="badge bg-info">Upcoming</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('teacher.quiz.results', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="text-decoration-none">
-                                            {{ $quiz->studentAttempts->count() }} attempts
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('teacher.quiz.show', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="btn btn-outline-primary" title="View">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a href="{{ route('teacher.quiz.edit', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="btn btn-outline-secondary" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="{{ route('teacher.quiz.results', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="btn btn-outline-info" title="Results">
-                                                <i class="bi bi-bar-chart"></i>
-                                            </a>
-                                            <form action="{{ route('teacher.quiz.delete', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quiz? This action cannot be undone.')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Duration</th>
+                            <th>Total Marks</th>
+                            <th>Questions</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Attempts</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($quizzes as $quiz)
+                        <tr>
+                            <td>
+                                <a href="{{ route('teacher.quiz.show', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="text-decoration-none fw-semibold">
+                                    {{ $quiz->title }}
+                                </a>
+                                @if(!$quiz->is_published)
+                                <span class="badge bg-secondary ms-2">Draft</span>
+                                @endif
+                            </td>
+                            <td>{{ $quiz->duration_minutes }} mins</td>
+                            <td>{{ $quiz->total_marks }}</td>
+                            <td>{{ $quiz->questions->count() }}</td>
+                            <td>{{ $quiz->start_time->format('M d, Y H:i') }}</td>
+                            <td>{{ $quiz->end_time->format('M d, Y H:i') }}</td>
+                            <td>
+                                @if($quiz->hasEnded())
+                                <span class="badge bg-secondary">Ended</span>
+                                @elseif($quiz->isActive())
+                                <span class="badge bg-success">Active</span>
+                                @elseif($quiz->hasStarted())
+                                <span class="badge bg-warning">Started</span>
+                                @else
+                                <span class="badge bg-info">Upcoming</span>
+                                @endif
+                            </td>
+                            <td>
+                                <a href="{{ route('teacher.quiz.results', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="text-decoration-none">
+                                    {{ $quiz->studentAttempts->count() }} attempts
+                                </a>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('teacher.quiz.show', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="btn btn-outline-primary" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ route('teacher.quiz.edit', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="btn btn-outline-secondary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{{ route('teacher.quiz.results', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" class="btn btn-outline-info" title="Results">
+                                        <i class="bi bi-bar-chart"></i>
+                                    </a>
+                                    @php $hasQuestions = $quiz->questions->count() > 0; @endphp
+                                    @if($quiz->is_published)
+                                    <form action="{{ route('teacher.quiz.unpublish', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Unpublish this quiz? It will disappear from students until you publish again.');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-warning" title="Unpublish">
+                                            <i class="bi bi-eye-slash"></i>
+                                        </button>
+                                    </form>
+                                    @else
+                                    <form action="{{ route('teacher.quiz.publish', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-success" title="Publish" @disabled(!$hasQuestions)>
+                                            <i class="bi bi-send-check"></i>
+                                        </button>
+                                    </form>
+                                    @endif
+                                    <form action="{{ route('teacher.quiz.delete', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quiz? This action cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
             @endif
         </div>
     </div>

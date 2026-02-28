@@ -99,6 +99,11 @@ class CourseController extends Controller
                 ? round((($attendanceStats[Attendance::STATUS_PRESENT] ?? 0) / $totalAttendance) * 100)
                 : null;
 
+            $materials = $course->materials()
+                ->orderByDesc('created_at')
+                ->take(10)
+                ->get();
+
             $studentAccess = [
                 'assignments' => $assignments,
                 'quizzes' => [
@@ -116,6 +121,7 @@ class CourseController extends Controller
                     ],
                     'rate' => $attendanceRate,
                 ],
+                'materials' => $materials,
                 'live_session' => $course->getLiveSessionSnapshot(),
                 'next_class_text' => $course->online_schedule ?? $course->schedule,
                 'enrollment' => $enrollment,

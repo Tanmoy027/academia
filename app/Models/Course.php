@@ -110,6 +110,11 @@ class Course extends Model
         return $this->hasMany(Quiz::class);
     }
 
+    public function materials()
+    {
+        return $this->hasMany(CourseMaterial::class)->latest();
+    }
+
     /**
      * Check if enrollment is allowed (course hasn't started yet)
      */

@@ -198,7 +198,15 @@
             <div class="card-body text-center">
                 <i class="bi bi-folder text-success" style="font-size: 2.5rem;"></i>
                 <h5 class="mt-2 mb-0 text-dark">Course Materials</h5>
-                <p class="text-muted small mb-0">Upload and manage files</p>
+                @php $latestMaterial = $course->materials->first(); @endphp
+                <p class="text-muted small mb-0">
+                    {{ $course->materials_count }} {{ Str::plural('file', $course->materials_count) }}
+                    @if($latestMaterial)
+                    • Updated {{ $latestMaterial->created_at->diffForHumans() }}
+                    @else
+                    • Ready to upload
+                    @endif
+                </p>
             </div>
         </a>
     </div>
