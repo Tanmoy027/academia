@@ -16,8 +16,10 @@ use App\Models\StudentQuizAttempt;
 use App\Models\StudentResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use App\Services\UserProfilePhotoService;
 use Carbon\Carbon;
 
@@ -406,6 +408,8 @@ class TeacherController extends Controller
             'twitter' => 'nullable|url|max:255',
             'facebook' => 'nullable|url|max:255',
             'website' => 'nullable|url|max:255',
+            'current_password' => ['required_with:password,password_confirmation', 'current_password'],
+            'password' => ['nullable', Password::defaults(), 'confirmed'],
         ]);
 
         // Handle social links
@@ -423,7 +427,7 @@ class TeacherController extends Controller
             $socialLinks['website'] = $request->website;
         }
 
-        $teacher->update([
+        $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
@@ -435,7 +439,13 @@ class TeacherController extends Controller
             'city' => $validated['city'] ?? null,
             'country' => $validated['country'] ?? null,
             'social_links' => !empty($socialLinks) ? $socialLinks : null,
-        ]);
+        ];
+
+        if (!empty($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
+        }
+
+        $teacher->update($updateData);
 
         return redirect()
             ->route('teacher.profile')
