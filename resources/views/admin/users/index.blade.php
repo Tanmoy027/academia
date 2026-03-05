@@ -32,6 +32,21 @@
             </div>
             @endif
 
+            @if(session('error'))
+            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl shadow-sm animate-fade-in">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
                     <div class="flex items-center justify-between">
@@ -55,6 +70,7 @@
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Email</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Role</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Joined</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100">
@@ -109,6 +125,19 @@
                                         </svg>
                                         {{ $user->created_at->format('M d, Y') }}
                                     </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    @if($user->role === 'student')
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Delete this student account? This action cannot be undone.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            Delete
+                                        </button>
+                                    </form>
+                                    @else
+                                    <span class="text-sm text-gray-400">No actions</span>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach

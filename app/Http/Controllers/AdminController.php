@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssignmentSubmission;
+use App\Models\Attendance;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Notice;
 use App\Models\Payment;
+use App\Models\StudentQuizAttempt;
+use App\Models\StudentResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
@@ -44,17 +49,46 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
-            'role' => 'required|in:admin,teacher,student',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
-            'role' => $validated['role'],
+            'role' => 'teacher',
         ]);
 
-        return redirect()->route('admin.users')->with('success', 'User created successfully.');
+        return redirect()->route('admin.users')->with('success', 'Teacher account created successfully.');
+    }
+
+    public function destroyUser(User $user)
+    {
+        if ($user->role !== 'student') {
+            return redirect()->route('admin.users')->with('error', 'Only student accounts can be deleted.');
+        }
+
+        DB::transaction(function () use ($user) {
+            $attemptIds = $user->quizAttempts()->pluck('id');
+            if ($attemptIds->isNotEmpty()) {
+                StudentResponse::whereIn('student_quiz_attempt_id', $attemptIds)->delete();
+                StudentQuizAttempt::whereIn('id', $attemptIds)->delete();
+            }
+
+            AssignmentSubmission::where('user_id', $user->id)->delete();
+            Attendance::where('user_id', $user->id)->delete();
+
+            $enrollmentIds = $user->enrollments()->pluck('id');
+            if ($enrollmentIds->isNotEmpty()) {
+                Payment::whereIn('enrollment_id', $enrollmentIds)->delete();
+                Enrollment::whereIn('id', $enrollmentIds)->delete();
+            }
+
+            Payment::where('user_id', $user->id)->delete();
+
+            $user->delete();
+        });
+
+        return redirect()->route('admin.users')->with('success', 'Student account deleted successfully.');
     }
 
     // --- Course Management ---
