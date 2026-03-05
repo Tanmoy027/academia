@@ -10,14 +10,14 @@
                 </div>
                 <div class="card-body">
                     @if($errors->any())
-                        <div class="alert alert-danger">
-                            <strong>Error!</strong> Please fix the following issues:
-                            <ul class="mb-0 mt-2">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+                    <div class="alert alert-danger">
+                        <strong>Error!</strong> Please fix the following issues:
+                        <ul class="mb-0 mt-2">
+                            @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                     @endif
 
                     <form action="{{ route('teacher.quiz.update', ['courseId' => $course->id, 'quizId' => $quiz->id]) }}" method="POST">
@@ -53,8 +53,9 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="end_time" class="form-label">End Time <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control" id="end_time" name="end_time" value="{{ old('end_time', $quiz->end_time->format('Y-m-d\TH:i')) }}" required>
+                                <label class="form-label">Ends At (auto)</label>
+                                <input type="text" class="form-control" id="calculated_end_time" value="{{ $quiz->end_time->format('M d, Y h:i A') }}" readonly>
+                                <small class="form-text text-muted">This updates automatically based on the start time and duration.</small>
                             </div>
                         </div>
 
@@ -88,4 +89,44 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const startInput = document.getElementById('start_time');
+        const durationInput = document.getElementById('duration_minutes');
+        const calculatedEndInput = document.getElementById('calculated_end_time');
+
+        const updateCalculatedEnd = () => {
+            if (!startInput || !durationInput || !calculatedEndInput) {
+                return;
+            }
+
+            if (!startInput.value || !durationInput.value) {
+                calculatedEndInput.value = 'Set start time and duration';
+                return;
+            }
+
+            const startDate = new Date(startInput.value);
+            const duration = parseInt(durationInput.value, 10);
+
+            if (Number.isNaN(startDate.getTime()) || Number.isNaN(duration)) {
+                calculatedEndInput.value = 'Waiting for valid input';
+                return;
+            }
+
+            const endDate = new Date(startDate.getTime() + duration * 60000);
+            calculatedEndInput.value = endDate.toLocaleString();
+        };
+
+        updateCalculatedEnd();
+
+        if (startInput) {
+            startInput.addEventListener('change', updateCalculatedEnd);
+        }
+        if (durationInput) {
+            durationInput.addEventListener('input', updateCalculatedEnd);
+        }
+    });
+</script>
+@endpush
 @endsection

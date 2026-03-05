@@ -778,10 +778,15 @@ class TeacherController extends Controller
             'total_marks' => 'required|integer|min:1|max:1000',
             'duration_minutes' => 'required|integer|min:1|max:480',
             'start_time' => 'required|date|after_or_equal:now',
-            'end_time' => 'required|date|after:start_time',
             'show_correct_answers' => 'nullable|boolean',
             'shuffle_questions' => 'nullable|boolean',
         ]);
+
+        $durationMinutes = (int) $validated['duration_minutes'];
+        $startTime = Carbon::parse($validated['start_time']);
+        $validated['duration_minutes'] = $durationMinutes;
+        $validated['start_time'] = $startTime;
+        $validated['end_time'] = $startTime->copy()->addMinutes($durationMinutes);
 
         $validated['course_id'] = $courseId;
         $validated['teacher_id'] = $teacher->id;
@@ -1015,10 +1020,15 @@ class TeacherController extends Controller
             'total_marks' => 'required|integer|min:1|max:1000',
             'duration_minutes' => 'required|integer|min:1|max:480',
             'start_time' => 'required|date|after_or_equal:now',
-            'end_time' => 'required|date|after:start_time',
             'show_correct_answers' => 'nullable|boolean',
             'shuffle_questions' => 'nullable|boolean',
         ]);
+
+        $durationMinutes = (int) $validated['duration_minutes'];
+        $startTime = Carbon::parse($validated['start_time']);
+        $validated['duration_minutes'] = $durationMinutes;
+        $validated['start_time'] = $startTime;
+        $validated['end_time'] = $startTime->copy()->addMinutes($durationMinutes);
 
         $validated['show_correct_answers'] = $request->has('show_correct_answers');
         $validated['shuffle_questions'] = $request->has('shuffle_questions');

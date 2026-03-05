@@ -20,14 +20,14 @@
                     </nav>
 
                     @if($errors->any())
-                        <div class="alert alert-danger">
-                            <strong>Error!</strong> Please fix the following issues:
-                            <ul class="mb-0 mt-2">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+                    <div class="alert alert-danger">
+                        <strong>Error!</strong> Please fix the following issues:
+                        <ul class="mb-0 mt-2">
+                            @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                     @endif
 
                     <form action="{{ route('teacher.quiz.store', $course->id) }}" method="POST">
@@ -37,7 +37,7 @@
                             <label for="title" class="form-label">Quiz Title <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title') }}" required maxlength="500">
                             @error('title')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -46,7 +46,7 @@
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description') }}</textarea>
                             <small class="form-text text-muted">Provide instructions or details about the quiz</small>
                             @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -55,7 +55,7 @@
                                 <label for="total_marks" class="form-label">Total Marks <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('total_marks') is-invalid @enderror" id="total_marks" name="total_marks" value="{{ old('total_marks', 100) }}" required min="1" max="1000">
                                 @error('total_marks')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -64,7 +64,7 @@
                                 <input type="number" class="form-control @error('duration_minutes') is-invalid @enderror" id="duration_minutes" name="duration_minutes" value="{{ old('duration_minutes', 30) }}" required min="1" max="480">
                                 <small class="form-text text-muted">Maximum 480 minutes (8 hours)</small>
                                 @error('duration_minutes')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -74,16 +74,14 @@
                                 <label for="start_time" class="form-label">Start Time <span class="text-danger">*</span></label>
                                 <input type="datetime-local" class="form-control @error('start_time') is-invalid @enderror" id="start_time" name="start_time" value="{{ old('start_time') }}" required>
                                 @error('start_time')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="end_time" class="form-label">End Time <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control @error('end_time') is-invalid @enderror" id="end_time" name="end_time" value="{{ old('end_time') }}" required>
-                                @error('end_time')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <label class="form-label">Ends At (auto)</label>
+                                <input type="text" class="form-control" id="calculated_end_time" value="" readonly>
+                                <small class="form-text text-muted">Calculated from the start time and duration.</small>
                             </div>
                         </div>
 
@@ -105,7 +103,7 @@
 
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Note:</strong> After creating the quiz, you'll need to add questions before publishing it.
+                            <strong>Note:</strong> End time will be generated automatically from the start time + duration. After creating the quiz, add questions before publishing it.
                         </div>
 
                         <div class="d-flex justify-content-between">
@@ -125,15 +123,47 @@
 
 @push('scripts')
 <script>
-    // Set minimum date to now for start_time
-    const now = new Date();
-    const dateString = now.toISOString().slice(0, 16);
-    document.getElementById('start_time').min = dateString;
-    document.getElementById('end_time').min = dateString;
+    document.addEventListener('DOMContentLoaded', () => {
+        const startInput = document.getElementById('start_time');
+        const durationInput = document.getElementById('duration_minutes');
+        const calculatedEndInput = document.getElementById('calculated_end_time');
 
-    // Update end_time min when start_time changes
-    document.getElementById('start_time').addEventListener('change', function() {
-        document.getElementById('end_time').min = this.value;
+        const now = new Date();
+        const minValue = now.toISOString().slice(0, 16);
+        if (startInput) {
+            startInput.min = minValue;
+        }
+
+        const updateCalculatedEnd = () => {
+            if (!startInput || !durationInput || !calculatedEndInput) {
+                return;
+            }
+
+            if (!startInput.value || !durationInput.value) {
+                calculatedEndInput.value = 'Set start time and duration';
+                return;
+            }
+
+            const startDate = new Date(startInput.value);
+            const duration = parseInt(durationInput.value, 10);
+
+            if (Number.isNaN(startDate.getTime()) || Number.isNaN(duration)) {
+                calculatedEndInput.value = 'Waiting for valid input';
+                return;
+            }
+
+            const endDate = new Date(startDate.getTime() + duration * 60000);
+            calculatedEndInput.value = endDate.toLocaleString();
+        };
+
+        updateCalculatedEnd();
+
+        if (startInput) {
+            startInput.addEventListener('change', updateCalculatedEnd);
+        }
+        if (durationInput) {
+            durationInput.addEventListener('input', updateCalculatedEnd);
+        }
     });
 </script>
 @endpush

@@ -155,7 +155,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function (
     Route::post('/courses/{courseId}/quizzes/{quizId}/attempts/{attemptId}/responses/{responseId}/grade', [TeacherController::class, 'gradeResponse'])->name('teacher.quiz.response.grade');
 });
 
-Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
+Route::middleware(['auth', 'role:student', 'verified'])->prefix('student')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'student'])->name('student.dashboard');
     Route::get('/notices', [NoticeController::class, 'studentNotices'])->name('student.notices');
     Route::get('/courses/{courseId}/performance', [PerformanceController::class, 'studentCourse'])->name('student.courses.performance');
