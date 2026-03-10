@@ -26,6 +26,12 @@ class PaymentController extends Controller
         $course = Course::findOrFail($courseId);
         $user = Auth::user();
 
+        // Teachers cannot buy courses
+        if ($user->role === 'teacher') {
+            return redirect()->route('courses.show', $courseId)
+                ->with('error', 'Teachers cannot purchase courses.');
+        }
+
         // Check if course has started (enrollment closed)
         if (!$course->canEnroll()) {
             return redirect()->route('courses.show', $courseId)
@@ -52,6 +58,12 @@ class PaymentController extends Controller
     {
         $course = Course::findOrFail($courseId);
         $user = Auth::user();
+
+        // Teachers cannot buy courses
+        if ($user->role === 'teacher') {
+            return redirect()->route('courses.show', $courseId)
+                ->with('error', 'Teachers cannot purchase courses.');
+        }
 
         // Check if course has started (enrollment closed)
         if (!$course->canEnroll()) {

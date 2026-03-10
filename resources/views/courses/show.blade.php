@@ -437,6 +437,17 @@
                 <button class="btn btn-secondary btn-lg w-100" disabled>
                     <i class="bi bi-x-circle me-2"></i>Enrollment Closed
                 </button>
+                @elseif(Auth::user()->role === 'teacher')
+                <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong>Teacher Account</strong><br>
+                        <small>Teachers cannot purchase courses.</small>
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-lg w-100" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Not Available for Teachers
+                </button>
                 @else
                 <a href="{{ route('payment.checkout', $course->id) }}" class="btn btn-success btn-lg w-100 mb-3">
                     <i class="bi bi-cart-plus me-2"></i>Enroll Now - ৳{{ number_format($course->price, 2) }}
