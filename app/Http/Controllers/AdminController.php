@@ -12,6 +12,7 @@ use App\Models\StudentQuizAttempt;
 use App\Models\StudentResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -94,7 +95,9 @@ class AdminController extends Controller
     // --- Course Management ---
     public function courses()
     {
-        $courses = Course::with('teacher')->paginate(10);
+        $courses = Course::with('teacher')
+            ->withCount('enrollments')
+            ->paginate(10);
         return view('admin.courses.index', compact('courses'));
     }
 
@@ -180,6 +183,18 @@ class AdminController extends Controller
             'online_time' => 'nullable|string',
         ]);
 
+        $courseEndDate = Carbon::parse($course->end_date);
+        if ($courseEndDate->isPast()) {
+            $requestedStartDate = Carbon::parse($validated['start_date'])->toDateString();
+            $requestedEndDate = Carbon::parse($validated['end_date'])->toDateString();
+            $currentStartDate = Carbon::parse($course->start_date)->toDateString();
+            $currentEndDate = $courseEndDate->toDateString();
+
+            if ($requestedStartDate !== $currentStartDate || $requestedEndDate !== $currentEndDate) {
+                return back()->withInput()->with('error', 'Course dates cannot be changed after the course has ended.');
+            }
+        }
+
         // Build online schedule string
         $onlineSchedule = null;
         if ($request->has('online_days') && count($request->online_days) > 0) {
@@ -227,6 +242,12 @@ class AdminController extends Controller
     public function deleteCourse($id)
     {
         $course = Course::findOrFail($id);
+        $hasEnrollments = Enrollment::where('course_id', $course->id)->exists();
+
+        if ($hasEnrollments) {
+            return redirect()->route('admin.courses')
+                ->with('error', 'Cannot delete this course because students are enrolled.');
+        }
         $course->delete();
         return redirect()->route('admin.courses')->with('success', 'Course deleted successfully.');
     }

@@ -118,7 +118,14 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-5">
-                                    @if($course->is_active)
+                                    @if($course->hasEnded())
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                            <circle cx="4" cy="4" r="3" />
+                                        </svg>
+                                        Ended
+                                    </span>
+                                    @elseif($course->is_active)
                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
                                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
                                             <circle cx="4" cy="4" r="3" />
@@ -136,12 +143,15 @@
                                 </td>
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex items-center justify-end space-x-2">
+                                        @if(!$course->hasEnded())
                                         <a href="{{ route('admin.courses.edit', $course->id) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                             Edit
                                         </a>
+                                        @endif
+                                        @if($course->enrollments_count === 0)
                                         <form action="{{ route('admin.courses.delete', $course->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this course?');">
                                             @csrf
                                             @method('DELETE')
@@ -152,6 +162,7 @@
                                                 Delete
                                             </button>
                                         </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
